@@ -1,0 +1,12 @@
+from __future__ import annotations
+
+from fastapi import APIRouter
+
+from app.modules.session.router import router as session_router
+
+api_router = APIRouter(prefix="/api/v1")
+
+api_router.include_router(session_router)
+
+# Phase 2 will add auth_router here.
+# Phase 3 will add vault_router here.
