@@ -1,0 +1,11 @@
+services:
+  frontend:
+    environment:
+      - NODE_ENV=development
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+
+  backend:
+    environment:
+      - DEBUG=true

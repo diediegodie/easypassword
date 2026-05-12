@@ -1,0 +1,25 @@
+# FastAPI e servidor
+fastapi==0.104.0
+uvicorn==0.24.0
+
+# Banco de dados
+sqlalchemy==2.0.0
+alembic==1.13.0
+psycopg2-binary==2.9.0
+
+# Cache e dados efêmeros
+redis==5.0.0
+
+# Autenticação WebAuthn (disponível no PyPI)
+webauthn
+
+# Validação
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Criptografia
+cryptography==41.0.0
+python-jose==3.3.0
+
+# Utilitários
+python-dotenv==1.0.0

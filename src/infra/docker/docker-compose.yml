@@ -1,0 +1,93 @@
+services:
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+    container_name: easypassword_frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - easypassword_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: easypassword_backend
+    ports:
+      - "8000:8000"
+    env_file: ../.env
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-easypassword_user}:${DB_PASSWORD:-dev_password}@postgres:5432/${DB_NAME:-easypassword}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - easypassword_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: easypassword_postgres
+    env_file: ../.env
+    environment:
+      - POSTGRES_USER=${DB_USER:-easypassword_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-dev_password}
+      - POSTGRES_DB=${DB_NAME:-easypassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - easypassword_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-easypassword_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: easypassword_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - easypassword_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: easypassword_postgres_data
+  redis_data:
+    name: easypassword_redis_data
+
+networks:
+  easypassword_network:
+    driver: bridge
+    name: easypassword_network

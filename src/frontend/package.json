@@ -1,0 +1,15 @@
+{
+  "name": "easypassword-frontend",
+  "version": "1.0.0",
+  "description": "EasyPassword - Angular PWA frontend",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint"
+  },
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {}
+}
