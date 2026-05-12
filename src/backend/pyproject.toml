@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "easypassword-backend"
+version = "1.0.0"
+description = "EasyPassword - FastAPI backend"
+requires-python = ">=3.12"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+
+[tool.ruff]
+lint.select = ["E", "F", "B", "I"]
+lint.ignore = []
+line-length = 88
+target-version = "py312"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]

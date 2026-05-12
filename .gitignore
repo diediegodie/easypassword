@@ -1,21 +1,50 @@
+# Python
 .venv/
 venv/
 __pycache__/
 *.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.env
-.DS_Store
-docs/
-.env
+.coverage
+htmlcov/
 
-# Environment variables (all variations)
+# Environment variables (all variations, never commit)
+.env
 .env.local
 .env.*.local
 .env.production
 .env.development
 
-# Docker volumes (local data)
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker volumes and local data
 postgres_data/
 redis_data/
+
+# Frontend
+src/frontend/node_modules/
+src/frontend/dist/
+src/frontend/coverage/
+
+# Backend artifacts
+src/backend/dist/
+src/backend/coverage/
+
+# Local docs
+docs/
