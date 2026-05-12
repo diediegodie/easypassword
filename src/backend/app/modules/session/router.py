@@ -44,8 +44,8 @@ def _resolve_refresh_token(
 async def refresh_session(
     request: Request,
     response: Response,
+    db: Annotated[AsyncSession, Depends(get_db)],
     payload: SessionTokenPayload | None = None,
-    db: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> dict[str, str]:
     refresh_token = _resolve_refresh_token(request, payload)
     access_token, new_refresh_token = await rotate_session(db, refresh_token)
@@ -64,8 +64,8 @@ async def refresh_session(
 async def revoke_session_route(
     request: Request,
     response: Response,
+    db: Annotated[AsyncSession, Depends(get_db)],
     payload: SessionTokenPayload | None = None,
-    db: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> dict[str, str]:
     refresh_token = _resolve_refresh_token(request, payload)
     await revoke_session(db, refresh_token)

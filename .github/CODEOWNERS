@@ -1,0 +1,31 @@
+# EasyPassword — Responsáveis por Módulo (V1)
+# Última atualização: 12 de maio de 2026
+
+# Infraestrutura e Docker
+/src/infra/ @diediegodie
+/.github/workflows/ @diediegodie
+/docker-compose.yml @diediegodie
+
+# Backend (FastAPI + Python)
+/src/backend/ @diediegodie
+/src/backend/requirements.txt @diediegodie
+/src/backend/pyproject.toml @diediegodie
+
+# Frontend (Angular)
+/src/frontend/ @diediegodie
+/src/frontend/package.json @diediegodie
+/src/frontend/.eslintrc.json @diediegodie
+/src/frontend/.prettierrc.json @diediegodie
+/src/frontend/jest.config.js @diediegodie
+
+# Documentação
+/docs/ @diediegodie
+/README*.md @diediegodie
+
+# Configurações Globais
+.gitignore @diediegodie
+.env.example @diediegodie
+/.github/ @diediegodie
+
+# Critério: Aprovação obrigatória de @diediegodie para merge em main
+*  @diediegodie

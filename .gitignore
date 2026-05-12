@@ -13,12 +13,11 @@ dist/
 .coverage
 htmlcov/
 
-# Environment variables (all variations, never commit)
+
+# Environment variables (never commit real secrets)
+# Only .env.example is tracked in git. All other .env* files are ignored.
 .env
-.env.local
-.env.*.local
-.env.production
-.env.development
+!.env.example
 
 # OS
 .DS_Store
@@ -45,6 +44,10 @@ src/frontend/coverage/
 # Backend artifacts
 src/backend/dist/
 src/backend/coverage/
+src/backend/.venv/
 
-# Local docs
+# Local runtime files
+*.log
+
+# User-specific files
 docs/
