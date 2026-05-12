@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
-from app.infra.database import init_db
 from app.modules.router import api_router
 
 
@@ -15,12 +14,8 @@ from app.modules.router import api_router
 async def lifespan(app: FastAPI):
     logger = configure_logging()
     logger.info("EasyPassword API starting", extra={"app_env": settings.APP_ENV})
-    
-    # Initialize database schema on startup
-    await init_db()
-    logger.info("Database initialized", extra={"app_env": settings.APP_ENV})
-    
     yield
+
 
 app = FastAPI(
     title="EasyPassword API",
