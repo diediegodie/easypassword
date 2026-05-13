@@ -1,12 +1,22 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Determine the project root (where .env is located)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+ENV_FILE = PROJECT_ROOT / ".env"
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE) if ENV_FILE.exists() else None,
+        extra="ignore",
+        env_file_encoding="utf-8"
+    )
 
     APP_ENV: str = "development"
     DEBUG: bool = False

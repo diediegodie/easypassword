@@ -11,9 +11,8 @@ from app.core.errors import AuthError
 from app.modules.auth.models import Device, User
 from app.modules.session.service import create_session, rotate_session
 
-# Test database URL (using the one from settings or a dedicated test one if preferred)
-# For simplicity, we use the same one but ideally, you'd use a separate test DB.
-TEST_DATABASE_URL = "postgresql+asyncpg://easypassword_user:dev_password@localhost:5432/easypassword_test"
+# Use settings from app.core.config which handles environment variables
+TEST_DATABASE_URL = settings.DATABASE_URL
 
 
 @pytest.fixture
@@ -66,7 +65,9 @@ async def test_session_flow(db_session: AsyncSession):
     print("Session created successfully")
 
     # 3. Rotate Session (Refresh)
-    new_access_token, new_refresh_token = await rotate_session(db_session, refresh_token)
+    new_access_token, new_refresh_token = await rotate_session(
+        db_session, refresh_token
+    )
     assert new_access_token is not None
     assert new_refresh_token is not None
     assert new_refresh_token != refresh_token
