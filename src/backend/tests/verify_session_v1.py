@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import uuid
+
 import pytest
-from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.core.errors import AuthError
-from app.modules.session.service import create_session, rotate_session, revoke_session
-from app.modules.session.models import Session as SessionModel
-from app.modules.auth.models import User, Device
-from app.infra.database import Base
+from app.modules.auth.models import Device, User
+from app.modules.session.service import create_session, rotate_session
 
 # Test database URL (using the one from settings or a dedicated test one if preferred)
 # For simplicity, we use the same one but ideally, you'd use a separate test DB.
@@ -73,7 +71,10 @@ async def test_session_flow(db: AsyncSession):
     # The previous attempt should have revoked the session.
     try:
         await rotate_session(db, new_refresh_token)
-        pytest.fail("Revocation verification failed: session still active after reuse detection")
+        pytest.fail(
+            "Revocation verification failed: "
+            "session still active after reuse detection"
+        )
     except AuthError as e:
         assert str(e) == "invalid refresh token"
         print("Session revocation verified after reuse")
