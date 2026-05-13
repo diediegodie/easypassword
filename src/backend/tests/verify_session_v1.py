@@ -20,10 +20,12 @@ TEST_DATABASE_URL = settings.DATABASE_URL
 async def db_session():
     engine = create_async_engine(TEST_DATABASE_URL)
     async_session = sessionmaker(
-        engine, expire_on_commit=False, class_=AsyncSession  # type: ignore
+        bind=engine,  # type: ignore
+        expire_on_commit=False,
+        class_=AsyncSession,
     )
 
-    async with engine.begin() as conn:
+    async with engine.begin():
         # For a real integration test, we might want to keep some tables,
         # but for this script we just want to test logic.
         pass
@@ -76,8 +78,7 @@ async def test_session_flow(db: AsyncSession):
     try:
         await rotate_session(db, new_refresh_token)
         pytest.fail(
-            "Revocation verification failed: "
-            "session still active after reuse detection"
+            "Revocation verification failed: session still active after reuse detection"
         )
     except AuthError as e:
         assert str(e) == "invalid refresh token"
@@ -92,7 +93,9 @@ if __name__ == "__main__":
 
         engine = create_async_engine(settings.DATABASE_URL)
         async_session = sessionmaker(
-            engine, expire_on_commit=False, class_=AsyncSession  # type: ignore
+            bind=engine,  # type: ignore
+            expire_on_commit=False,
+            class_=AsyncSession,
         )
 
         async with async_session() as session:  # type: ignore
