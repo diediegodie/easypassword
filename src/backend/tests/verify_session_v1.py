@@ -13,7 +13,12 @@ from app.modules.session.service import create_session, rotate_session
 
 # Test database URL (using the one from settings or a dedicated test one if preferred)
 # For simplicity, we use the same one but ideally, you'd use a separate test DB.
-TEST_DATABASE_URL = settings.DATABASE_URL
+TEST_DATABASE_URL = "postgresql+asyncpg://easypassword_user:dev_password@localhost:5432/easypassword_test"
+
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
 
 
 @pytest.fixture
@@ -25,10 +30,11 @@ async def db_session():
         class_=AsyncSession,
     )
 
-    async with engine.begin():
-        # For a real integration test, we might want to keep some tables,
-        # but for this script we just want to test logic.
-        pass
+    from app.infra.database import Base
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
 
     async with async_session() as session:  # type: ignore
         yield session
@@ -36,30 +42,31 @@ async def db_session():
     await engine.dispose()
 
 
-async def test_session_flow(db: AsyncSession):
+@pytest.mark.anyio
+async def test_session_flow(db_session: AsyncSession):
     # 1. Setup User and Device
     user = User(email=f"test_{uuid.uuid4()}@example.com")
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
 
     device = Device(
         user_id=user.id, credential_id=str(uuid.uuid4()), public_key=b"public_key"
     )
-    db.add(device)
-    await db.commit()
-    await db.refresh(device)
+    db_session.add(device)
+    await db_session.commit()
+    await db_session.refresh(device)
 
     print(f"Created user {user.id} and device {device.id}")
 
     # 2. Create Session
-    access_token, refresh_token = await create_session(db, user.id, device.id)
+    access_token, refresh_token = await create_session(db_session, user.id, device.id)
     assert access_token is not None
     assert refresh_token is not None
     print("Session created successfully")
 
     # 3. Rotate Session (Refresh)
-    new_access_token, new_refresh_token = await rotate_session(db, refresh_token)
+    new_access_token, new_refresh_token = await rotate_session(db_session, refresh_token)
     assert new_access_token is not None
     assert new_refresh_token is not None
     assert new_refresh_token != refresh_token
@@ -67,7 +74,7 @@ async def test_session_flow(db: AsyncSession):
 
     # 4. Reuse Detection (Old Token)
     try:
-        await rotate_session(db, refresh_token)
+        await rotate_session(db_session, refresh_token)
         pytest.fail("Reuse detection failed: old token allowed refresh")
     except AuthError as e:
         assert str(e) == "token reuse detected"
@@ -76,7 +83,7 @@ async def test_session_flow(db: AsyncSession):
     # 5. Verify Revocation after Reuse
     # The previous attempt should have revoked the session.
     try:
-        await rotate_session(db, new_refresh_token)
+        await rotate_session(db_session, new_refresh_token)
         pytest.fail(
             "Revocation verification failed: session still active after reuse detection"
         )
