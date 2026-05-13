@@ -1,5 +1,5 @@
 # FastAPI e servidor
-fastapi==0.104.0
+fastapi==0.136.1
 uvicorn==0.24.0
 httpx==0.28.1
 
@@ -16,8 +16,9 @@ redis==5.0.0
 webauthn
 
 # Validação
-pydantic==2.5.0
+pydantic==2.13.4
 pydantic-settings==2.1.0
+starlette==1.0.0
 
 # Criptografia
 cryptography==48.0.0

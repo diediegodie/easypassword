@@ -45,5 +45,5 @@ def test_settings(monkeypatch: pytest.MonkeyPatch) -> "Settings":
 def app_client() -> Generator[TestClient, None, None]:
     from main import app
 
-    with TestClient(app) as client:
-        yield client
+    client = TestClient(app)
+    yield client
