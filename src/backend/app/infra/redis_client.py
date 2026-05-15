@@ -5,6 +5,7 @@ from collections.abc import AsyncGenerator
 from redis.asyncio import Redis
 
 from app.core.config import settings
+from app.infra.redis_keys import WEBAUTHN_CHALLENGE_KEY
 
 redis_client = Redis.from_url(settings.REDIS_URL, decode_responses=False)
 
@@ -14,18 +15,21 @@ async def get_redis() -> AsyncGenerator[Redis, None]:
 
 
 async def set_challenge(challenge_id: str, challenge_bytes: bytes) -> None:
+    key = WEBAUTHN_CHALLENGE_KEY.format(challenge_id)
     await redis_client.setex(
-        challenge_id, settings.WEBAUTHN_CHALLENGE_TTL_SECONDS, challenge_bytes
+        key, settings.WEBAUTHN_CHALLENGE_TTL_SECONDS, challenge_bytes
     )
 
 
 async def get_challenge(challenge_id: str) -> bytes | None:
     try:
-        value = await redis_client.getdel(challenge_id)
+        key = WEBAUTHN_CHALLENGE_KEY.format(challenge_id)
+        value = await redis_client.getdel(key)
     except AttributeError:
-        value = await redis_client.get(challenge_id)
+        key = WEBAUTHN_CHALLENGE_KEY.format(challenge_id)
+        value = await redis_client.get(key)
         if value is not None:
-            await redis_client.delete(challenge_id)
+            await redis_client.delete(key)
     return value
 
 

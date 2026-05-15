@@ -21,5 +21,6 @@ target-version = "py312"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q"
+# Exclude integration tests by default; CI integration job should run them explicitly
+addopts = "-ra -q -m 'not integration'"
 testpaths = ["tests"]

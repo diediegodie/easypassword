@@ -7,13 +7,15 @@ from typing import Deque
 from fastapi import Depends, HTTPException, Request
 
 from app.infra.redis_client import get_redis, set_rate_limit
+from app.infra.redis_keys import RATE_LIMIT_KEY
 
 RATE_LIMIT_REQUESTS = 10
 RATE_LIMIT_WINDOW_SECONDS = 60
 SENSITIVE_PATH_PREFIXES = (
-    "/api/v1/auth/register",
-    "/api/v1/auth/login",
-    "/api/v1/session/refresh",
+    # Match any auth endpoints (register, login, etc.)
+    "/api/v1/auth/",
+    # Match session-related endpoints (refresh, revoke, etc.)
+    "/api/v1/session/",
 )
 
 _LOCAL_RATE_LIMITS: dict[str, Deque[float]] = defaultdict(deque)
@@ -57,7 +59,7 @@ async def require_rate_limit(
         return
 
     client_ip = _client_ip(request)
-    key = f"rate_limit:{client_ip}:{request.url.path}"
+    key = RATE_LIMIT_KEY.format(client_ip=client_ip, path=request.url.path)
 
     try:
         allowed = await set_rate_limit(

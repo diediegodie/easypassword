@@ -47,3 +47,31 @@ def app_client() -> Generator[TestClient, None, None]:
 
     client = TestClient(app)
     yield client
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip integration tests by default when running locally.
+
+    Enable by setting environment variable `RUN_INTEGRATION=1` or when
+    running in GitHub Actions (`GITHUB_ACTIONS` is set).
+    """
+    run_integration = (
+        os.getenv("RUN_INTEGRATION", "").lower() in ("1", "true", "yes")
+        or os.getenv("GITHUB_ACTIONS", "").lower() == "true"
+    )
+
+    if not run_integration:
+        skip_integration = pytest.mark.skip(
+            reason=(
+                "Integration tests disabled locally; set RUN_INTEGRATION=1 to enable"
+            )
+        )
+        for item in items:
+            try:
+                if "integration" in item.keywords or "tests/integration" in str(
+                    item.fspath
+                ):
+                    item.add_marker(skip_integration)
+            except Exception:
+                # If any introspection fails, don't modify the item (safe fallback).
+                continue
