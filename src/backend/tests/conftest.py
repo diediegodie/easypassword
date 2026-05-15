@@ -55,9 +55,13 @@ def pytest_collection_modifyitems(config, items):
     Enable by setting environment variable `RUN_INTEGRATION=1` or when
     running in GitHub Actions (`GITHUB_ACTIONS` is set).
     """
-    run_integration = (
-        os.getenv("RUN_INTEGRATION", "").lower() in ("1", "true", "yes")
-        or os.getenv("GITHUB_ACTIONS", "").lower() == "true"
+    # Integration tests are opt-in. Set `RUN_INTEGRATION=1` to enable them.
+    # Previously we enabled integration tests automatically in CI via
+    # `GITHUB_ACTIONS`, which caused jobs without Redis services to fail.
+    run_integration = os.getenv("RUN_INTEGRATION", "").lower() in (
+        "1",
+        "true",
+        "yes",
     )
 
     if not run_integration:
