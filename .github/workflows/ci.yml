@@ -52,7 +52,8 @@ jobs:
         ports:
           - 6379:6379
     env:
-      REDIS_URL: redis://redis:6379
+      # Use localhost so the runner can reliably connect to the published port.
+      REDIS_URL: redis://127.0.0.1:6379
       RUN_INTEGRATION: "1"
     steps:
       - uses: actions/checkout@v4
@@ -61,4 +62,19 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - run: pip install pytest
+      - name: Wait for Redis service
+        run: |
+          python - <<'PY'
+          import socket,sys,time
+          for i in range(30):
+              try:
+                  s=socket.create_connection(("127.0.0.1",6379),1)
+                  s.close()
+                  print("Redis available")
+                  sys.exit(0)
+              except Exception:
+                  time.sleep(1)
+          print("Timed out waiting for Redis")
+          sys.exit(1)
+          PY
       - run: pytest tests/integration -q
