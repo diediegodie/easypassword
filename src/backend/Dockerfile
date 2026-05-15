@@ -12,8 +12,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código da aplicação
 COPY . .
 
+# Copiar e configurar entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Expor porta
 EXPOSE 8000
 
-# Comando padrão
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Entrypoint script que executa migrações e inicia a aplicação
+ENTRYPOINT ["/app/entrypoint.sh"]

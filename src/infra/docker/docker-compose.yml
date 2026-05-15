@@ -20,7 +20,7 @@ services:
     container_name: easypassword_backend
     ports:
       - "8000:8000"
-    env_file: ../.env
+    env_file: ../../../.env
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-easypassword_user}:${DB_PASSWORD:-dev_password}@postgres:5432/${DB_NAME:-easypassword}
       - REDIS_URL=redis://redis:6379
@@ -47,7 +47,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: easypassword_postgres
-    env_file: ../.env
+    env_file: ../../../.env
     environment:
       - POSTGRES_USER=${DB_USER:-easypassword_user}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-dev_password}
