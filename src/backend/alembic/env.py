@@ -1,4 +1,4 @@
-""""This file is used by Alembic to run database migrations.
+""" "This file is used by Alembic to run database migrations.
 It is not intended to be used directly by the application code."""
 
 from __future__ import annotations
