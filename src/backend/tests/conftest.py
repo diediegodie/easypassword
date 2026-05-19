@@ -181,7 +181,12 @@ async def fake_redis(monkeypatch: pytest.MonkeyPatch):
         try:
             yield real_fake
         finally:
-            await real_fake.close()
+            try:
+                await real_fake.close()
+            except RuntimeError:
+                # pytest may finalize this fixture after loop shutdown
+                # in some integration paths; don't fail test teardown.
+                pass
         return
 
     fake = AsyncFakeRedis()

@@ -49,6 +49,9 @@ jobs:
     env:
       DATABASE_URL: postgresql+asyncpg://easypassword_user:dev_password@127.0.0.1:5432/easypassword
       REDIS_URL: redis://127.0.0.1:6379/0
+      SECRET_KEY: ci-secret-key
+      WEBAUTHN_RP_ID: localhost
+      WEBAUTHN_ORIGIN: http://localhost
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -113,6 +116,9 @@ jobs:
       # Use localhost so the runner can reliably connect to the published port.
       REDIS_URL: redis://127.0.0.1:6379
       RUN_INTEGRATION: "1"
+      SECRET_KEY: ci-secret-key
+      WEBAUTHN_RP_ID: localhost
+      WEBAUTHN_ORIGIN: http://localhost
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
