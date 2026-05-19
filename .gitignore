@@ -16,7 +16,7 @@ htmlcov/
 
 # Environment variables (never commit real secrets)
 # Only .env.example is tracked in git. All other .env* files are ignored.
-.env
+.env*
 !.env.example
 
 # OS

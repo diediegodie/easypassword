@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infra.database import Base
@@ -67,6 +68,9 @@ class Device(Base):
     )
     device_name: Mapped[str | None] = mapped_column(
         sa.String(length=255), nullable=True
+    )
+    device_metadata: Mapped[dict] = mapped_column(
+        JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb")
     )
     is_active: Mapped[bool] = mapped_column(
         sa.Boolean, nullable=False, server_default=sa.text("true")

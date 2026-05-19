@@ -19,6 +19,7 @@ webauthn
 pydantic==2.13.4
 pydantic-settings==2.1.0
 starlette==1.0.0
+email-validator==2.3.0
 
 # Criptografia
 cryptography==48.0.0

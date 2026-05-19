@@ -2,27 +2,44 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Generator
+from collections.abc import AsyncGenerator, Generator
 from typing import TYPE_CHECKING
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 if TYPE_CHECKING:
     from app.core.config import Settings
+
+_IN_DOCKER = os.path.exists("/.dockerenv")
+
+_DATABASE_URL = (
+    "postgresql+asyncpg://easypassword_user:dev_password@postgres:5432/easypassword"
+    if _IN_DOCKER
+    else "postgresql+asyncpg://easypassword_user:dev_password@localhost:5432/easypassword"
+)
+_REDIS_URL = "redis://redis:6379/0" if _IN_DOCKER else "redis://localhost:6379/0"
 
 _TEST_ENV = {
     "APP_ENV": "development",
     "DEBUG": "false",
     "SECRET_KEY": "test-secret-key",
-    "DATABASE_URL": "postgresql+asyncpg://postgres:postgres@localhost:5432/easypassword_test",
-    "REDIS_URL": "redis://localhost:6379/0",
+    "DATABASE_URL": _DATABASE_URL,
+    "REDIS_URL": _REDIS_URL,
     "WEBAUTHN_RP_ID": "localhost",
     "WEBAUTHN_ORIGIN": "http://localhost:8000",
 }
 
+TEST_DATABASE_URL = _TEST_ENV["DATABASE_URL"]
+TRUNCATE_TEST_DATA_SQL = (
+    "TRUNCATE TABLE sessions, vaults, devices, users " "RESTART IDENTITY CASCADE"
+)
+
 for key, value in _TEST_ENV.items():
-    os.environ.setdefault(key, value)
+    os.environ[key] = value
 
 
 @pytest.fixture()
@@ -44,10 +61,38 @@ def test_settings(monkeypatch: pytest.MonkeyPatch) -> "Settings":
 
 @pytest.fixture()
 def app_client() -> Generator[TestClient, None, None]:
+    from app.infra.database import get_db
     from main import app
 
+    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+        async with test_session_factory() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = override_get_db
     client = TestClient(app)
-    yield client
+    try:
+        yield client
+    finally:
+        app.dependency_overrides.clear()
+
+
+test_engine = create_async_engine(
+    TEST_DATABASE_URL,
+    echo=False,
+    future=True,
+    poolclass=NullPool,
+)
+test_session_factory = async_sessionmaker(
+    test_engine,
+    expire_on_commit=False,
+    class_=AsyncSession,
+)
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def configure_test_database() -> AsyncGenerator[None, None]:
+    yield
+    await test_engine.dispose()
 
 
 # Provide a lightweight in-process async fake Redis for local, Docker-free
@@ -101,7 +146,7 @@ class AsyncFakeRedis:
         self._store.clear()
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def fake_redis(monkeypatch: pytest.MonkeyPatch):
     """Monkeypatch `app.infra.redis_client.redis_client` with an async in-memory
     fake when `RUN_INTEGRATION` is not set. In CI we set `RUN_INTEGRATION=1` so
@@ -119,3 +164,28 @@ def fake_redis(monkeypatch: pytest.MonkeyPatch):
     finally:
         # synchronous cleanup: clear the in-memory store
         fake._store.clear()
+
+
+@pytest.fixture(autouse=True)
+async def clean_database(
+    configure_test_database: None,
+) -> AsyncGenerator[None, None]:
+    """Start each test from a clean database state."""
+    async with test_session_factory() as session:
+        await session.execute(text(TRUNCATE_TEST_DATA_SQL))
+        await session.commit()
+
+    yield
+
+    async with test_session_factory() as session:
+        await session.execute(text(TRUNCATE_TEST_DATA_SQL))
+        await session.commit()
+
+
+@pytest.fixture()
+async def db_session(configure_test_database: None):
+    """Provide async database session for tests."""
+    async with test_session_factory() as session:
+        yield session
+        # Cleanup: rollback any uncommitted changes
+        await session.rollback()
