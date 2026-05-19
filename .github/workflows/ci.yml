@@ -78,7 +78,10 @@ jobs:
           PY
       - run: ruff check .
       - run: black --check .
-      - run: pytest
+      - name: Run database migrations
+        run: alembic upgrade head
+      - name: Run tests
+        run: pytest
 
   integration:
     name: Integration Tests (Redis)
@@ -147,4 +150,6 @@ jobs:
           print("Timed out waiting for Redis")
           sys.exit(1)
           PY
+      - name: Run database migrations
+        run: alembic upgrade head
       - run: pytest tests/integration -q

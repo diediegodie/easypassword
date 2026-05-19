@@ -89,8 +89,26 @@ test_session_factory = async_sessionmaker(
 )
 
 
+# Use session-scoped loop to avoid "Event loop is closed" errors when sharing resources
+# like redis_client across async tests in CI/Integration mode.
+@pytest.fixture(scope="session")
+def event_loop():
+    import asyncio
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+
 @pytest.fixture(scope="session", autouse=True)
 async def configure_test_database() -> AsyncGenerator[None, None]:
+    from app.infra.database import Base
+
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
     await test_engine.dispose()
 
@@ -147,14 +165,22 @@ class AsyncFakeRedis:
 
 
 @pytest.fixture(autouse=True)
-def fake_redis(monkeypatch: pytest.MonkeyPatch):
+async def fake_redis(monkeypatch: pytest.MonkeyPatch):
     """Monkeypatch `app.infra.redis_client.redis_client` with an async in-memory
-    fake when `RUN_INTEGRATION` is not set. In CI we set `RUN_INTEGRATION=1` so
-    the real Redis service is used.
+    fake when `RUN_INTEGRATION` is not set. In CI we set `RUN_INTEGRATION=1`.
+    Even in CI we monkeypatch a fresh real client per test to avoid loop closure issues.
     """
     run_real = os.getenv("RUN_INTEGRATION", "").lower() in ("1", "true", "yes")
     if run_real:
-        yield
+        from redis.asyncio import Redis
+
+        from app.core.config import settings
+        real_fake = Redis.from_url(settings.REDIS_URL, decode_responses=False)
+        monkeypatch.setattr("app.infra.redis_client.redis_client", real_fake)
+        try:
+            yield real_fake
+        finally:
+            await real_fake.close()
         return
 
     fake = AsyncFakeRedis()
