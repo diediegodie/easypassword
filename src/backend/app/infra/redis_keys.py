@@ -8,6 +8,6 @@ from __future__ import annotations
 
 # Patterns discovered in the repository
 WEBAUTHN_CHALLENGE_KEY = "webauthn:challenge:{}"
-RATE_LIMIT_KEY = "rate_limit:{client_ip}:{path}"
+RATE_LIMIT_KEY = "rate_limit:{client_ip}:{user}:{path}"
 
 __all__ = ["WEBAUTHN_CHALLENGE_KEY", "RATE_LIMIT_KEY"]

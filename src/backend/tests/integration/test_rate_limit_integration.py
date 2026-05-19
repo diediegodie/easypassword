@@ -13,7 +13,11 @@ from app.infra.redis_keys import RATE_LIMIT_KEY
 async def test_rate_limit_integration_end_to_end(fake_redis) -> None:
     # Uses real Redis service when RUN_INTEGRATION=1; otherwise uses an
     # in-process async fake Redis provided by the `fake_redis` fixture.
-    key = RATE_LIMIT_KEY.format(client_ip="127.0.0.1", path="/int/test")
+    key = RATE_LIMIT_KEY.format(
+        client_ip="127.0.0.1",
+        user="user-int",
+        path="/int/test",
+    )
     max_requests = 3
     window_seconds = 2
 
