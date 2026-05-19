@@ -175,6 +175,7 @@ async def fake_redis(monkeypatch: pytest.MonkeyPatch):
         from redis.asyncio import Redis
 
         from app.core.config import settings
+
         real_fake = Redis.from_url(settings.REDIS_URL, decode_responses=False)
         monkeypatch.setattr("app.infra.redis_client.redis_client", real_fake)
         try:
