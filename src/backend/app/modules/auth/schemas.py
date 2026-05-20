@@ -52,3 +52,40 @@ class RegistrationCompletionResponse(BaseModel):
     device_id: UUID
     user_id: UUID
     token_type: str = "Bearer"
+
+
+class AuthenticationInitiationRequest(BaseModel):
+    """Request schema for WebAuthn authentication initiation."""
+
+    email: EmailStr
+
+
+class AuthenticationInitiationResponse(BaseModel):
+    """Response schema for WebAuthn authentication initiation."""
+
+    authentication_id: str = Field(
+        description="Server-generated unique identifier for this authentication session"
+    )
+    public_key: dict[str, Any] = Field(
+        description="WebAuthn authentication options for navigator.credentials.get()"
+    )
+
+
+class AuthenticationCompletionRequest(BaseModel):
+    """Request schema for WebAuthn authentication completion."""
+
+    authentication_id: str = Field(
+        description="The authentication_id returned from initiation endpoint"
+    )
+    credential: dict[str, Any] = Field(
+        description="Full assertion payload from navigator.credentials.get()"
+    )
+
+
+class AuthenticationCompletionResponse(BaseModel):
+    """Response schema for WebAuthn authentication completion."""
+
+    access_token: str
+    device_id: UUID
+    user_id: UUID
+    token_type: str = "Bearer"

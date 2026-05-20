@@ -9,11 +9,18 @@ from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
-from webauthn import generate_registration_options, verify_registration_response
+from webauthn import (
+    generate_authentication_options,
+    generate_registration_options,
+    verify_authentication_response,
+    verify_registration_response,
+)
 from webauthn.helpers import base64url_to_bytes, options_to_json
 from webauthn.helpers.structs import (
     AttestationConveyancePreference,
     AuthenticatorSelectionCriteria,
+    PublicKeyCredentialDescriptor,
+    PublicKeyCredentialType,
     ResidentKeyRequirement,
     UserVerificationRequirement,
 )
@@ -107,6 +114,138 @@ async def generate_registration_options_for_user(
 
     await db.commit()
     return registration_id, registration_options_dict
+
+
+async def generate_authentication_options_for_user(
+    db: AsyncSession,
+    email: str,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Generate WebAuthn authentication options for an existing user with an active device.
+
+    Args:
+        db: Database session
+        email: User email (will be normalized to lowercase)
+
+    Returns:
+        Tuple of (authentication_id, authentication_options_dict)
+
+    Raises:
+        AuthError: If user or active device is missing
+    """
+    email = email.lower().strip()
+
+    result = await db.execute(sa.select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise AuthError("user not found")
+
+    result = await db.execute(
+        sa.select(Device).where(
+            sa.and_(Device.user_id == user.id, Device.is_active.is_(True))
+        )
+    )
+    device = result.scalar_one_or_none()
+
+    if device is None:
+        raise AuthError("no active device found for user")
+
+    allowed_credential = PublicKeyCredentialDescriptor(
+        id=device.credential_id.encode(),
+        type=PublicKeyCredentialType.PUBLIC_KEY,
+    )
+
+    authentication_options = generate_authentication_options(
+        rp_id=settings.WEBAUTHN_RP_ID,
+        allow_credentials=[allowed_credential],
+        user_verification=UserVerificationRequirement.PREFERRED,
+    )
+
+    authentication_options_dict = json.loads(options_to_json(authentication_options))
+
+    authentication_id = str(uuid.uuid4())
+
+    challenge_payload = {
+        "purpose": "authentication",
+        "user_id": str(user.id),
+        "device_id": str(device.id),
+        "credential_id": device.credential_id,
+        "authentication_id": authentication_id,
+        "challenge": authentication_options_dict["challenge"],
+        "rp_id": settings.WEBAUTHN_RP_ID,
+        "origin": settings.WEBAUTHN_ORIGIN,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    await set_challenge(authentication_id, json.dumps(challenge_payload).encode())
+
+    return authentication_id, authentication_options_dict
+
+
+async def verify_authentication_credential(
+    db: AsyncSession,
+    authentication_id: str,
+    credential: dict,
+) -> tuple[uuid.UUID, uuid.UUID]:
+    """
+    Verify WebAuthn authentication credential and update device login state.
+
+    Args:
+        db: Database session
+        authentication_id: The authentication_id from initiation
+        credential: The full assertion payload from navigator.credentials.get()
+
+    Returns:
+        Tuple of (user_id, device_id)
+
+    Raises:
+        AuthError: If challenge is expired, invalid, or assertion verification fails
+    """
+    challenge_data = await get_challenge(authentication_id)
+
+    if challenge_data is None:
+        raise AuthError("challenge expired or invalid")
+
+    try:
+        challenge_payload = json.loads(challenge_data.decode())
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise AuthError("invalid challenge data") from e
+
+    if challenge_payload.get("purpose") != "authentication":
+        raise AuthError("challenge purpose mismatch")
+
+    user_id = uuid.UUID(challenge_payload["user_id"])
+    device_id = uuid.UUID(challenge_payload["device_id"])
+
+    result = await db.execute(sa.select(Device).where(Device.id == device_id))
+    device = result.scalar_one_or_none()
+
+    if device is None or not device.is_active:
+        raise AuthError("inactive or missing device")
+
+    if device.credential_id != challenge_payload["credential_id"]:
+        raise AuthError("credential mismatch")
+
+    try:
+        verified_assertion = verify_authentication_response(
+            credential=credential,
+            expected_challenge=base64url_to_bytes(challenge_payload["challenge"]),
+            expected_origin=settings.WEBAUTHN_ORIGIN,
+            expected_rp_id=settings.WEBAUTHN_RP_ID,
+            credential_public_key=device.public_key,
+            credential_current_sign_count=device.sign_count,
+            require_user_verification=False,
+        )
+    except Exception as e:
+        raise AuthError(f"credential verification failed: {str(e)}") from e
+
+    device.sign_count = verified_assertion.new_sign_count or device.sign_count
+    device.last_login_at = datetime.now(timezone.utc)
+
+    await db.commit()
+
+    return user_id, device_id
 
 
 async def verify_registration_credential(

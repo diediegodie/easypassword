@@ -8,13 +8,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rate_limit import require_rate_limit
 from app.infra.database import get_db
 from app.modules.auth.schemas import (
+    AuthenticationCompletionRequest,
+    AuthenticationCompletionResponse,
+    AuthenticationInitiationRequest,
+    AuthenticationInitiationResponse,
     RegistrationCompletionRequest,
     RegistrationCompletionResponse,
     RegistrationInitiationRequest,
     RegistrationInitiationResponse,
 )
 from app.modules.auth.service import (
+    generate_authentication_options_for_user,
     generate_registration_options_for_user,
+    verify_authentication_credential,
     verify_registration_credential,
 )
 from app.modules.session.service import create_session
@@ -57,6 +63,66 @@ async def register_options(
     return RegistrationInitiationResponse(
         registration_id=registration_id,
         public_key=public_key,
+    )
+
+
+@router.post("/login/options")
+async def login_options(
+    request: AuthenticationInitiationRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AuthenticationInitiationResponse:
+    """
+    Initiate WebAuthn authentication for an existing device.
+
+    This endpoint returns WebAuthn assertion options and stores a one-time
+    challenge in Redis. The login flow is only valid for an active device.
+    """
+    authentication_id, public_key = await generate_authentication_options_for_user(
+        db=db,
+        email=request.email,
+    )
+    return AuthenticationInitiationResponse(
+        authentication_id=authentication_id,
+        public_key=public_key,
+    )
+
+
+@router.post("/login/verify")
+async def login_verify(
+    request: AuthenticationCompletionRequest,
+    response: Response,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AuthenticationCompletionResponse:
+    """
+    Complete WebAuthn authentication and issue session tokens.
+
+    The challenge is consumed one-time from Redis. After successful verification,
+    an access token is returned and a refresh token cookie is set.
+    """
+    user_id, device_id = await verify_authentication_credential(
+        db=db,
+        authentication_id=request.authentication_id,
+        credential=request.credential,
+    )
+
+    access_token, refresh_token = await create_session(
+        db=db, user_id=user_id, device_id=device_id
+    )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        path="/",
+    )
+
+    return AuthenticationCompletionResponse(
+        access_token=access_token,
+        device_id=device_id,
+        user_id=user_id,
+        token_type="Bearer",
     )
 
 
