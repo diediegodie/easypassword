@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import time
 from collections.abc import AsyncGenerator, Generator
 from typing import TYPE_CHECKING
@@ -13,6 +14,28 @@ from sqlalchemy.pool import NullPool
 
 if TYPE_CHECKING:
     from app.core.config import Settings
+
+
+def is_postgres_ready():
+    """Check if PostgreSQL is accessible for integration tests."""
+    try:
+        from sqlalchemy import create_engine, text
+
+        db_url = os.getenv(
+            "TEST_DATABASE_URL",
+            os.getenv(
+                "DATABASE_URL",
+                "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db",
+            ),
+        )
+        sync_url = db_url.replace("+asyncpg", "")
+        engine = create_engine(sync_url)
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False
+
 
 _IN_DOCKER = os.path.exists("/.dockerenv")
 
@@ -105,6 +128,11 @@ def event_loop():
 
 @pytest.fixture(scope="session", autouse=True)
 async def configure_test_database() -> AsyncGenerator[None, None]:
+    run_integration = os.getenv("RUN_INTEGRATION") == "1"
+    if not run_integration:
+        yield
+        return
+
     from app.infra.database import Base
 
     async with test_engine.begin() as conn:
@@ -203,6 +231,11 @@ async def clean_database(
     configure_test_database: None,
 ) -> AsyncGenerator[None, None]:
     """Start each test from a clean database state."""
+    run_integration = os.getenv("RUN_INTEGRATION") == "1"
+    if not run_integration:
+        yield
+        return
+
     async with test_session_factory() as session:
         await session.execute(text(TRUNCATE_TEST_DATA_SQL))
         await session.commit()
@@ -212,6 +245,51 @@ async def clean_database(
     async with test_session_factory() as session:
         await session.execute(text(TRUNCATE_TEST_DATA_SQL))
         await session.commit()
+
+
+def pytest_sessionstart(session):
+    """Check service readiness when RUN_INTEGRATION=1."""
+    run_integration = os.getenv("RUN_INTEGRATION") == "1"
+    is_ci = os.getenv("CI") == "true"
+
+    if run_integration or is_ci:
+        print("\nChecking services for integration tests...")
+        if not is_postgres_ready():
+            pytest.exit(
+                "\nPostgreSQL not available.\n"
+                "To run integration tests:\n"
+                "  docker-compose up -d\n"
+                "  RUN_INTEGRATION=1 pytest\n"
+                "Or run only unit tests:\n"
+                "  pytest tests/unit/\n",
+                returncode=1,
+            )
+        print("PostgreSQL OK")
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip integration tests and DB-backed tests if RUN_INTEGRATION is not set."""
+    run_integration = os.getenv("RUN_INTEGRATION") == "1"
+    DB_FIXTURES = {
+        "db_session",
+        "test_engine",
+        "test_session_factory",
+        "app_client",
+        "async_db_session",
+    }
+
+    for item in items:
+        uses_db = any(fixture in item.fixturenames for fixture in DB_FIXTURES)
+        is_integration = "integration" in str(item.parent) or item.get_closest_marker(
+            "integration"
+        )
+
+        if (is_integration or uses_db) and not run_integration:
+            item.add_marker(
+                pytest.mark.skip(
+                    reason="Integration test or requires database. Run with: RUN_INTEGRATION=1 pytest"
+                )
+            )
 
 
 @pytest.fixture()

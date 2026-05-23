@@ -134,3 +134,30 @@ That means:
 EasyPassword is meant to feel like a calm, modern security product: fast to unlock, hard to misuse, and careful about where trust lives.
 
 It should be small enough to stay understandable, but strong enough to serve as a real password manager foundation for years.
+
+## Testing
+
+### Structure
+- `tests/unit/` - Unit tests (fast, no external dependencies)
+- `tests/integration/` - Integration tests (require Docker with PostgreSQL)
+
+### Running tests
+
+**Unit tests only (recommended for fast development):**
+```bash
+make test-unit
+# or
+RUN_INTEGRATION=0 pytest tests/unit/
+```
+
+**Full test suite (includes integration):**
+```bash
+make test-all
+# or
+cd src/infra/docker && docker-compose up -d
+cd ../backend && RUN_INTEGRATION=1 pytest
+cd ../infra/docker && docker-compose down
+```
+
+**CI/CD**
+In the pipeline, run `RUN_INTEGRATION=1 pytest` with `docker-compose up`.

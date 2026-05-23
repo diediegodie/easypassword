@@ -9,6 +9,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+pytestmark = pytest.mark.integration
+
 from app.modules.auth.models import Device, User
 from app.modules.session.models import Session
 

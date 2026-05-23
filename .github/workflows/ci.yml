@@ -49,6 +49,7 @@ jobs:
     env:
       DATABASE_URL: postgresql+asyncpg://easypassword_user:dev_password@127.0.0.1:5432/easypassword
       REDIS_URL: redis://127.0.0.1:6379/0
+      RUN_INTEGRATION: "1"
       SECRET_KEY: ci-secret-key
       WEBAUTHN_RP_ID: localhost
       WEBAUTHN_ORIGIN: http://localhost
@@ -86,76 +87,3 @@ jobs:
       - name: Run tests
         run: pytest
 
-  integration:
-    name: Integration Tests (Redis)
-    runs-on: ubuntu-latest
-    needs: backend
-    defaults:
-      run:
-        working-directory: src/backend
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: easypassword_user
-          POSTGRES_PASSWORD: dev_password
-          POSTGRES_DB: easypassword
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U easypassword_user -d easypassword"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
-    env:
-      DATABASE_URL: postgresql+asyncpg://easypassword_user:dev_password@127.0.0.1:5432/easypassword
-      # Use localhost so the runner can reliably connect to the published port.
-      REDIS_URL: redis://127.0.0.1:6379
-      RUN_INTEGRATION: "1"
-      SECRET_KEY: ci-secret-key
-      WEBAUTHN_RP_ID: localhost
-      WEBAUTHN_ORIGIN: http://localhost
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install -r requirements.txt
-      - run: pip install pytest
-      - name: Wait for Postgres service
-        run: |
-          python - <<'PY'
-          import socket,sys,time
-          for _ in range(60):
-              try:
-                  s=socket.create_connection(("127.0.0.1",5432),1)
-                  s.close()
-                  print("Postgres available")
-                  sys.exit(0)
-              except Exception:
-                  time.sleep(1)
-          print("Timed out waiting for Postgres")
-          sys.exit(1)
-          PY
-      - name: Wait for Redis service
-        run: |
-          python - <<'PY'
-          import socket,sys,time
-          for i in range(30):
-              try:
-                  s=socket.create_connection(("127.0.0.1",6379),1)
-                  s.close()
-                  print("Redis available")
-                  sys.exit(0)
-              except Exception:
-                  time.sleep(1)
-          print("Timed out waiting for Redis")
-          sys.exit(1)
-          PY
-      - name: Run database migrations
-        run: alembic upgrade head
-      - run: pytest tests/integration -q

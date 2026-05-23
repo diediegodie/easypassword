@@ -9,6 +9,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+pytestmark = pytest.mark.integration
+
 from app.core.errors import AuthError, ConflictError
 from app.infra.redis_client import get_challenge, set_challenge
 from app.modules.auth.models import Device, User

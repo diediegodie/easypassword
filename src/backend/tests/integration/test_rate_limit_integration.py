@@ -7,6 +7,8 @@ import pytest
 from app.infra import redis_client as rc
 from app.infra.redis_keys import RATE_LIMIT_KEY
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import pytest
 from typing import Any, cast
 
 from app.modules.router import api_router
+
+pytestmark = pytest.mark.integration
 
 
 def test_auth_router_mounted() -> None:
