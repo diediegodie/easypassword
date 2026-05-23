@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import pytest
 from typing import Any, cast
+
+import pytest
 
 from app.modules.router import api_router
 

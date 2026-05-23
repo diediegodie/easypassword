@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import sys
 import time
 from collections.abc import AsyncGenerator, Generator
 from typing import TYPE_CHECKING
@@ -58,7 +57,7 @@ _TEST_ENV = {
 
 TEST_DATABASE_URL = _TEST_ENV["DATABASE_URL"]
 TRUNCATE_TEST_DATA_SQL = (
-    "TRUNCATE TABLE sessions, vaults, devices, users " "RESTART IDENTITY CASCADE"
+    "TRUNCATE TABLE sessions, vaults, devices, users RESTART IDENTITY CASCADE"
 )
 
 for key, value in _TEST_ENV.items():
@@ -287,7 +286,10 @@ def pytest_collection_modifyitems(config, items):
         if (is_integration or uses_db) and not run_integration:
             item.add_marker(
                 pytest.mark.skip(
-                    reason="Integration test or requires database. Run with: RUN_INTEGRATION=1 pytest"
+                    reason=(
+                        "Integration test or requires database. Run with: "
+                        "RUN_INTEGRATION=1 pytest"
+                    )
                 )
             )
 
