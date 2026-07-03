@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EasyPassword — Roadmap V1 (Execution Checklist)</title>
+    <meta property="document:type" content="roadmap-execution">
+    <meta property="project:name" content="EasyPassword">
+    <meta property="version" content="V1">
+    <meta property="project-status" content="in-progress">
+    <!-- INSTRUCTION FOR LLM: 
+         Este documento é um checklist executável do projeto EasyPassword V1.
+         Extraia: fases concluídas, tarefas pendentes, dependências entre tasks,
+         e percentual de conclusão por fase.
+         ATENÇÃO: O status [x] vs [ ] indica progresso REAL do projeto.
+    -->
+    <style>
+        body {
+            font-family: system-ui, monospace;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .phase {
+            border-left: 4px solid #3b82f6;
+            margin: 30px 0;
+            padding-left: 20px;
+        }
+
+        .task {
+            margin: 12px 0;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+
+        .task-done {
+            background: #e6f7e6;
+            border-left: 3px solid #22c55e;
+        }
+
+        .task-pending {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-done {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-pending {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .task-code {
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .summary {
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .phase-progress {
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .task-notes {
+            margin-left: 12px;
+            font-size: 0.9em;
+            color: #374151;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="summary">📊 Progresso geral: 34/105 tasks concluídas (32.38%)</div>
+
+    <section class="phase" data-phase-id="rules">
+        <h2>Execution Rules (Mandatory)</h2>
+        <ul>
+            <li>Fully respect the V1 scope defined in the official document.</li>
+            <li>Do not implement account recovery, device migration, or multi-device in V1.</li>
+            <li>Do not enable offline functional use in V1.</li>
+            <li>Keep Angular as the only frontend stack.</li>
+            <li>Maintain PostgreSQL as the session source of truth.</li>
+            <li>Use Redis only for ephemeral data (challenge, rate limit, and short expiration).</li>
+        </ul>
+    </section>
+
+    <section class="phase" data-phase-id="0" data-phase-complete="100.00">
+        <h2>Phase 0 — Project Preparation</h2>
+        <div class="phase-progress">Progresso: 100.00%</div>
+
+        <h3>0.1 Repository and organization</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task1"> ✅ Confirm folder structure for
+            frontend, backend, infrastructure, and docs. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task2"> ✅ Define branch convention and
+            commit standard. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task3"> ✅ Define CODEOWNERS or module
+            owners. <span class="status status-done">DONE</span></div>
+
+        <h3>0.2 Local environment</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task4"> ✅ Create Docker Compose
+            environment with services: frontend, backend, postgres, and redis. <span
+                class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task5"> ✅ Ensure all services start
+            with a single command. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task6"> ✅ Create an example environment
+            variables file. <span class="status status-done">DONE</span></div>
+
+        <h3>0.3 Minimum quality</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task7"> ✅ Configure lint and formatting
+            for frontend and backend. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task8"> ✅ Configure automated tests
+            with CI execution. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase0-task9"> ✅ Define merge rule: no green
+            tests, no merge. <span class="status status-done">DONE</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="1" data-phase-complete="100.00">
+        <h2>Phase 1 — Backend Base (FastAPI + Database + Session)</h2>
+        <div class="phase-progress">Progresso: 100.00%</div>
+
+        <h3>1.1 API Foundation</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task1"> ✅ Initialize FastAPI project
+            with modular structure (auth, vault, session, infra). <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task2"> ✅ Define environment-based
+            configuration layer. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task3"> ✅ Configure centralized error
+            and log handling. <span class="status status-done">DONE</span></div>
+
+        <h3>1.2 Modeling and migrations</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task4"> ✅ Implement tables users,
+            devices, vaults, and sessions. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task5"> ✅ Create Alembic migrations for
+            all tables. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task6"> ✅ Apply integrity constraints
+            (FK, unique, essential indexes). <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task7"> ✅ Create index for queries by
+            user_id and device_id on critical tables. <span class="status status-done">DONE</span></div>
+
+        <h3>1.3 Session and tokens (closed parameters)</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task8"> ✅ Implement JWT access token
+            with 5-minute validity. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task9"> ✅ Implement opaque refresh
+            token with 7-day validity. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task10"> ✅ Store refresh token only as
+            a hash in PostgreSQL. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task11"> ✅ Implement mandatory refresh
+            token rotation on each renewal. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task12"> ✅ Implement immediate session
+            revocation in case of reuse detection. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task13"> ✅ Configure HttpOnly and
+            Secure cookies for token transport. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task14"> ✅ Ensure Redis is not the
+            session authority. <span class="status status-done">DONE</span></div>
+
+        <h3>1.4 Ephemeral components</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task15"> ✅ Implement WebAuthn challenge
+            storage in Redis. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task16"> ✅ Configure challenge TTL to
+            90 seconds. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase1-task17"> ✅ Implement basic rate
+            limiting by IP/user on sensitive endpoints (keyed by client_ip + user + path). <span
+                class="status status-done">DONE</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="2" data-phase-complete="66.67">
+        <h2>Phase 2 — WebAuthn Authentication (Single Device)</h2>
+        <div class="phase-progress">Progresso: 66.67%</div>
+
+        <h3>2.1 Credential registration</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task1"> ✅ Create WebAuthn registration
+            initiation endpoint. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task2"> ✅ Create WebAuthn registration
+            completion endpoint. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task3"> ✅ Persist credential_id,
+            public_key, and device metadata. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task4"> ✅ Link account to a single
+            active device. <span class="status status-done">DONE</span></div>
+
+        <h3>2.2 Recurring login</h3>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task5"> ✅ Create WebAuthn
+            authentication initiation endpoint. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task6"> ✅ Create WebAuthn
+            authentication completion endpoint. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task7"> ✅ Validate challenge,
+            signature, and device state. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase2-task8"> ✅ Issue session only after
+            valid authentication. <span class="status status-done">DONE</span></div>
+
+        <h3>2.3 Access security rules</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase2-task9"> ⏳ Require WebAuthn
+            reauthentication after 60 seconds of inactivity. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase2-task10"> ⏳ Apply 120-second clock
+            skew tolerance. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase2-task11"> ⏳ Block authentication
+            from inactive devices. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase2-task12"> ⏳ Ensure device
+            switching is out of V1 scope. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="3" data-phase-complete="0.00">
+        <h2>Phase 3 — Client-Side Encryption + API Contracts</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+
+        <h3>3.1 Encrypted data contract</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task1"> ⏳ Define vault payload
+            containing only encrypted blobs and allowed metadata. <span class="status status-pending">PENDING</span>
+        </div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task2"> ⏳ Ensure backend never
+            receives decryption key. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task3"> ⏳ Ensure backend does not
+            perform decryption in any flow. <span class="status status-pending">PENDING</span></div>
+
+        <h3>3.2 Mandatory cryptographic rules</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task4"> ⏳ Implement AES-GCM on
+            the client for sensitive data. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task5"> ⏳ Generate unique IV per
+            operation with crypto.getRandomValues(). <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task6"> ⏳ Prevent IV reuse with
+            the same key. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task7"> ⏳ Validate Master Key
+            creation and usage flow only on the device. <span class="status status-pending">PENDING</span></div>
+
+        <h3>3.3 Cryptographic error handling</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task8"> ⏳ Display clear error
+            when local key is unavailable. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task9"> ⏳ Securely invalidate
+            session in case of critical integrity failure. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="4" data-phase-complete="0.00">
+        <h2>Phase 4 — Frontend Angular (UI + State + Integration)</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+
+        <h3>4.1 Frontend foundation</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task1"> ⏳ Initialize Angular app
+            with feature-based architecture. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task2"> ⏳ Configure HttpClient as
+            the single communication layer. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task3"> ⏳ Configure Signals for
+            global/local state. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task4"> ⏳ Do not include Axios or
+            other HTTP stacks. <span class="status status-pending">PENDING</span></div>
+
+        <h3>4.2 Authentication flows</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task5"> ⏳ Implement WebAuthn
+            access screen and registration flow. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task6"> ⏳ Implement recurring
+            login flow with passkeys. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task7"> ⏳ Implement session
+            expiration and transparent renewal. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task8"> ⏳ Implement inactivity
+            lock after 60 seconds. <span class="status status-pending">PENDING</span></div>
+
+        <h3>4.3 Vault flows</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task9"> ⏳ Implement vault item
+            listing. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task10"> ⏳ Implement creation,
+            editing, and deletion of entries. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task11"> ⏳ Implement quick
+            password copy. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task12"> ⏳ Implement local
+            decryption only at the time of use. <span class="status status-pending">PENDING</span></div>
+
+        <h3>4.4 Connectivity rules</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task13"> ⏳ Block functional use
+            when offline. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task14"> ⏳ Display connectivity
+            status and clear message to the user. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task15"> ⏳ Prevent vault
+            read/write without active connection. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="5" data-phase-complete="0.00">
+        <h2>Phase 5 — PWA and iPhone X Support</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+
+        <h3>5.1 PWA</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task1"> ⏳ Configure manifest and
+            icons. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task2"> ⏳ Configure standalone
+            mode. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task3"> ⏳ Configure service
+            worker for static assets only. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task4"> ⏳ Ensure service worker
+            does not enable offline functional use. <span class="status status-pending">PENDING</span></div>
+
+        <h3>5.2 V1 support matrix</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task5"> ⏳ Validate main behavior
+            on iPhone X. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task6"> ⏳ Validate on iOS 16.7.x.
+            <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task7"> ⏳ Validate on Safari iOS
+            and standalone PWA mode. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task8"> ⏳ Record that other
+            devices are outside V1 support commitment. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="6" data-phase-complete="0.00">
+        <h2>Phase 6 — Security Hardening</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+
+        <h3>6.1 API and session</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task1"> ⏳ Apply CSP as needed for
+            hosted frontend. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task2"> ⏳ Apply CSRF for flows
+            with session cookies when applicable. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task3"> ⏳ Apply restrictive CORS
+            policy. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task4"> ⏳ Enforce HTTPS in all
+            external environments. <span class="status status-pending">PENDING</span></div>
+
+        <h3>6.2 Observability and auditing</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task5"> ⏳ Log critical
+            authentication and session revocation events. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task6"> ⏳ Log WebAuthn failures
+            and refresh token reuse attempts. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task7"> ⏳ Define minimum error
+            and availability dashboard. <span class="status status-pending">PENDING</span></div>
+
+        <h3>6.3 Security tests</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task8"> ⏳ Test challenge, access
+            token, and refresh token expiration. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task9"> ⏳ Test revocation by
+            reuse detection. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task10"> ⏳ Test offline access
+            attempts and validate blocking. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task11"> ⏳ Test single-device
+            with second device attempt. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="7" data-phase-complete="0.00">
+        <h2>Phase 7 — CI/CD and Deployment (Render)</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+
+        <h3>7.1 CI Pipeline</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task1"> ⏳ Run lint, tests, and
+            build on pull request. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task2"> ⏳ Block merge with failed
+            pipeline. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task3"> ⏳ Publish build artifacts
+            when applicable. <span class="status status-pending">PENDING</span></div>
+
+        <h3>7.2 Production preparation</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task4"> ⏳ Configure services on
+            Render for frontend and backend. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task5"> ⏳ Configure managed
+            PostgreSQL and backup strategy. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task6"> ⏳ Configure Redis for
+            ephemeral challenge/rate limit use. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task7"> ⏳ Configure environment
+            variables and secrets with rotation. <span class="status status-pending">PENDING</span></div>
+
+        <h3>7.3 Go-live</h3>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task8"> ⏳ Run migrations in
+            production. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task9"> ⏳ Validate complete flow:
+            registration, login, session, vault, logout. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task10"> ⏳ Validate security
+            headers and HTTPS. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task11"> ⏳ Publish V1 version and
+            monitor the first 24 hours. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="8" data-phase-complete="0.00">
+        <h2>Phase 8 — V1 Acceptance Criteria</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase8-task1"> ⏳ User can register
+            device via WebAuthn on first access. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase8-task2"> ⏳ User can access daily
+            with passkey/biometrics/system PIN. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase8-task3"> ⏳ Session respects all
+            defined times (challenge, access, refresh, inactivity). <span class="status status-pending">PENDING</span>
+        </div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase8-task4"> ⏳ Vault works with local
+            encryption and backend without decryption. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase8-task5"> ⏳ Application does not
+            allow offline functional use. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase8-task6"> ⏳ Application meets main
+            support defined for iPhone X. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase8-task7"> ⏳ CI/CD pipeline and
+            Render deployment are stable. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="9" data-phase-complete="0.00">
+        <h2>Phase 9 — V1 Closure</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase9-task1"> ⏳ Consolidate checklist
+            with evidence of completion per item. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase9-task2"> ⏳ Freeze V1 backlog and
+            open V2 backlog separately. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase9-task3"> ⏳ Formalize V1 release
+            notes. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase9-task4"> ⏳ Explicitly classify
+            pending items as V2. <span class="status status-pending">PENDING</span></div>
+    </section>
+
+    <section class="phase" data-phase-id="change-control" data-phase-complete="0.00">
+        <h2>Change Control</h2>
+        <div class="phase-progress">Progresso: 0.00%</div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase-change-task1"> ⏳ Any changes to
+            this roadmap must reference the official product document. <span
+                class="status status-pending">PENDING</span></div>
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase-change-task2"> ⏳ Any item that
+            contradicts the source of truth must be blocked until product approval. <span
+                class="status status-pending">PENDING</span></div>
+    </section>
+
+</body>
+
+</html>

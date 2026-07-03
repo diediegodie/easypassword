@@ -48,6 +48,3 @@ src/backend/.venv/
 
 # Local runtime files
 *.log
-
-# User-specific files
-docs/

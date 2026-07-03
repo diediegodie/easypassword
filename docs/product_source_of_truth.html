@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EasyPassword — Product Document (V1)</title>
+    <meta property="document:type" content="product-specification">
+    <meta property="project:name" content="EasyPassword">
+    <meta property="version" content="V1">
+    <meta property="status" content="frozen">
+    <!-- INSTRUCTION FOR LLM: 
+         Este documento contém as especificações oficiais do produto EasyPassword V1.
+         Extraia: escopo (in/out), stack tecnológica, decisões arquiteturais e regras de V1.
+    -->
+    <style>
+        /* Estilo leve para legibilidade humana */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .scope-in {
+            background: #e6f7e6;
+        }
+
+        .scope-out {
+            background: #ffe6e6;
+            text-decoration: line-through;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .architecture-diagram {
+            background: #f5f5f5;
+            padding: 16px;
+            font-family: monospace;
+        }
+
+        .status-badge {
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .arch-decision {
+            border-left: 3px solid #ccc;
+            padding: 8px;
+            margin: 8px 0;
+        }
+
+        details.arch-decision details {
+            margin-top: 6px;
+        }
+
+        pre.original-markdown {
+            background: #fafafa;
+            border: 1px solid #eee;
+            padding: 12px;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>EasyPassword — Official Product Document (V1) <span class="meta" data-doc-title="EasyPassword"
+            data-version="V1"> </span></h1>
+    <div class="status-badge">Status: FROZEN (V1)</div>
+
+    <section id="product-objective" data-section="product-objective">
+        <h2>Product Objective</h2>
+        <p>This document is the single source of truth for the V1 of the product.</p>
+        <p>Objective:</p>
+        <p>Build a web/mobile application in PWA format for password management with a focus on:</p>
+        <ul>
+            <li>passwordless authentication with WebAuthn/passkeys</li>
+            <li>simple use after the first device registration</li>
+            <li>end-to-end encryption on the client</li>
+            <li>minimal trust architecture on the backend</li>
+            <li>mobile-first experience, starting with iPhone</li>
+            <li>primary backend in Python</li>
+        </ul>
+    </section>
+
+    <section id="v1-scope" data-section="v1-scope">
+        <h2>V1 Scope and Direction</h2>
+        <p>V1 is intentionally limited to maximize reliability, security, and delivery predictability.</p>
+        <p>Scope rules:</p>
+        <ul class="scope-rules">
+            <li class="scope-in">one active user at a time on a single device</li>
+            <li class="scope-out">no account recovery flow in V1</li>
+            <li class="scope-out">no device migration in V1</li>
+            <li class="scope-out">no traditional password</li>
+            <li class="scope-out">no reading of sensitive content on the backend</li>
+            <li class="scope-out">no multiple frontend stacks</li>
+        </ul>
+    </section>
+
+    <section id="high-level-architecture" data-section="high-level-architecture">
+        <h2>High-Level Architecture</h2>
+        <div class="architecture-diagram">
+            <pre>
+User Device
+        ↓
+PWA Angular
+        ↓
+WebAuthn + Web Crypto API
+        ↓
+FastAPI
+        ↓
+PostgreSQL
+</pre>
+        </div>
+    </section>
+
+    <section id="official-v1-stack" data-section="official-v1-stack">
+        <h2>Official V1 Stack</h2>
+
+        <h3>Frontend</h3>
+        <table aria-label="Frontend stack">
+            <thead>
+                <tr>
+                    <th>Technology</th>
+                    <th>Function</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-stack-layer="frontend">
+                    <td>Angular</td>
+                    <td>Main interface</td>
+                </tr>
+                <tr data-stack-layer="frontend">
+                    <td>Angular CLI</td>
+                    <td>Build and tooling</td>
+                </tr>
+                <tr data-stack-layer="frontend">
+                    <td>PWA</td>
+                    <td>Installation and use as an app</td>
+                </tr>
+                <tr data-stack-layer="frontend">
+                    <td>WebAuthn API</td>
+                    <td>Authentication with passkeys</td>
+                </tr>
+                <tr data-stack-layer="frontend">
+                    <td>Web Crypto API</td>
+                    <td>Client-side encryption</td>
+                </tr>
+                <tr data-stack-layer="frontend">
+                    <td>HttpClient</td>
+                    <td>Standard HTTP communication</td>
+                </tr>
+                <tr data-stack-layer="frontend">
+                    <td>Signals</td>
+                    <td>Local state and reactivity</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Backend</h3>
+        <table aria-label="Backend stack">
+            <thead>
+                <tr>
+                    <th>Technology</th>
+                    <th>Function</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-stack-layer="backend">
+                    <td>Python</td>
+                    <td>Main language</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>FastAPI</td>
+                    <td>Main API</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>SQLAlchemy</td>
+                    <td>ORM</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>Alembic</td>
+                    <td>Migrations</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>Pydantic</td>
+                    <td>Data validation</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>PostgreSQL</td>
+                    <td>Persistent source of truth</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>Redis</td>
+                    <td>Short-lived ephemeral data</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>cryptography</td>
+                    <td>Support cryptographic operations</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>py_webauthn</td>
+                    <td>WebAuthn credential validation</td>
+                </tr>
+                <tr data-stack-layer="backend">
+                    <td>Uvicorn</td>
+                    <td>ASGI server</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Infrastructure</h3>
+        <table aria-label="Infrastructure stack">
+            <thead>
+                <tr>
+                    <th>Technology</th>
+                    <th>Function</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-stack-layer="infrastructure">
+                    <td>Docker</td>
+                    <td>Containerization</td>
+                </tr>
+                <tr data-stack-layer="infrastructure">
+                    <td>Docker Compose</td>
+                    <td>Local environment</td>
+                </tr>
+                <tr data-stack-layer="infrastructure">
+                    <td>Render</td>
+                    <td>Deployment</td>
+                </tr>
+                <tr data-stack-layer="infrastructure">
+                    <td>GitHub</td>
+                    <td>Repository</td>
+                </tr>
+                <tr data-stack-layer="infrastructure">
+                    <td>GitHub Actions</td>
+                    <td>CI/CD</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="authentication-model" data-section="authentication-model">
+        <h2>Authentication Model</h2>
+
+        <h3>First login and device registration</h3>
+        <p>On first access, the user authenticates the device with WebAuthn/passkeys. The device's operating system may
+            use Face ID, Touch ID, PIN, or the equivalent platform-supported method to confirm the user's presence and
+            identity.</p>
+        <p>During this first login:</p>
+        <ul>
+            <li>the WebAuthn credential is created and associated with the user</li>
+            <li>the device is registered as the active device</li>
+            <li>the vault's local key is created on the device itself</li>
+            <li>the initial access unlocks the account session</li>
+        </ul>
+
+        <h3>Daily access</h3>
+        <p>After the first login, the user accesses the app using the operating system's verification via WebAuthn. In
+            practice, this means the device requests biometric confirmation or the device's PIN to grant access.</p>
+        <p>The app does not treat biometrics as a password. It simply requests authentication from the device's native
+            authenticator.</p>
+
+        <h3>Single-device policy</h3>
+        <p>In V1, the account is linked to only one active device.</p>
+        <ul>
+            <li>if the user removes the app's local data, the device loses the link</li>
+            <li>if the device is replaced, the old registration cannot be reused in V1</li>
+            <li>simultaneous login on multiple devices is not allowed</li>
+        </ul>
+    </section>
+
+    <section id="encryption-model" data-section="encryption-model">
+        <h2>Encryption Model</h2>
+
+        <h3>Principles</h3>
+        <ul>
+            <li>the Master Key is generated on the device itself</li>
+            <li>sensitive data is encrypted on the client before reaching the backend</li>
+            <li>the backend stores only encrypted blobs and minimal metadata</li>
+            <li>the backend must never have access to the key that decrypts the vault data</li>
+        </ul>
+
+        <h3>Encryption flow</h3>
+        <div class="architecture-diagram">
+            <pre>
+Real password or sensitive content
+        ↓
+Local encryption with Web Crypto API
+        ↓
+Encrypted blob
+        ↓
+API
+        ↓
+PostgreSQL
+</pre>
+        </div>
+
+        <h3>Technical rules</h3>
+        <ul>
+            <li>use AES-GCM for vault data</li>
+            <li>generate a unique IV/nonce for each cryptographic operation</li>
+            <li>use <code>crypto.getRandomValues()</code> for secure random value generation</li>
+            <li>never reuse IV with the same key</li>
+            <li>store only what is necessary to restore local encryption on the device itself</li>
+        </ul>
+    </section>
+
+    <section id="data-structure" data-section="data-structure">
+        <h2>Data Structure</h2>
+
+        <h3>users</h3>
+        <ul>
+            <li>id</li>
+            <li>email</li>
+            <li>account_status</li>
+            <li>created_at</li>
+            <li>updated_at</li>
+        </ul>
+
+        <h3>devices</h3>
+        <ul>
+            <li>id</li>
+            <li>user_id</li>
+            <li>credential_id</li>
+            <li>public_key</li>
+            <li>device_name</li>
+            <li>last_login_at</li>
+            <li>created_at</li>
+        </ul>
+
+        <h3>vaults</h3>
+        <ul>
+            <li>id</li>
+            <li>user_id</li>
+            <li>service_name</li>
+            <li>login_name</li>
+            <li>password_blob</li>
+            <li>notes_blob</li>
+            <li>created_at</li>
+            <li>updated_at</li>
+        </ul>
+
+        <h3>sessions</h3>
+        <ul>
+            <li>id</li>
+            <li>user_id</li>
+            <li>device_id</li>
+            <li>refresh_token_hash</li>
+            <li>issued_at</li>
+            <li>expires_at</li>
+            <li>last_activity_at</li>
+            <li>revoked_at</li>
+            <li>created_at</li>
+        </ul>
+    </section>
+
+    <section id="session-policy" data-section="session-policy">
+        <h2>Session Policy</h2>
+        <p>Session behavior must be simple and predictable:</p>
+        <ul>
+            <li>PostgreSQL is the source of truth for persistent sessions</li>
+            <li>Redis is used only for challenges, rate limits, and short expiration</li>
+            <li>Rate limiting on sensitive endpoints must include both client IP and user scope</li>
+            <li>the backend uses a short-lived JWT access token and an opaque refresh token</li>
+            <li>the refresh token must be stored only as a hash in the database</li>
+            <li>Redis is not a session authority; it does not replace persistent registration in PostgreSQL</li>
+            <li>session cookies must be <code>HttpOnly</code> and <code>Secure</code></li>
+            <li>expiration and revocation must be centrally controlled on the backend</li>
+        </ul>
+
+        <p>V1 closed parameters:</p>
+        <ul>
+            <li>WebAuthn challenge TTL: 90 seconds</li>
+            <li>JWT access token validity: 5 minutes</li>
+            <li>refresh token validity: 7 days</li>
+            <li>refresh token rotation: mandatory on each session renewal</li>
+            <li>refresh token reuse detection: immediately revoke the active device session</li>
+            <li>inactivity window to require new WebAuthn authentication: 60 seconds</li>
+            <li>clock skew tolerance between client and server: 120 seconds</li>
+        </ul>
+    </section>
+
+    <section id="v1-features" data-section="v1-features">
+        <h2>V1 Features</h2>
+
+        <h3>Authentication</h3>
+        <ul>
+            <li>passwordless registration with WebAuthn</li>
+            <li>login with passkeys and operating system verification</li>
+            <li>logout</li>
+            <li>session renewal</li>
+            <li>challenge expiration</li>
+        </ul>
+
+        <h3>Vault</h3>
+        <ul>
+            <li>CRUD for passwords</li>
+            <li>quick password copy</li>
+            <li>item listing with on-demand loading</li>
+        </ul>
+
+        <h3>Security</h3>
+        <ul>
+            <li>AES-GCM on the client</li>
+            <li>WebAuthn for authentication</li>
+            <li>short-lived JWT access token + opaque refresh token with hash persisted on the backend</li>
+            <li>CSP, rate limit (by IP + user on sensitive endpoints), CSRF when applicable, and mandatory HTTPS</li>
+        </ul>
+
+        <h3>Mobile/PWA</h3>
+        <ul>
+            <li>custom splash screen and icon</li>
+            <li>standalone mode</li>
+            <li>no offline functional support in V1</li>
+        </ul>
+    </section>
+
+    <section id="offline-behavior" data-section="offline-behavior">
+        <h2>Offline Behavior</h2>
+        <p>V1 offline mode must follow these rules:</p>
+        <ul>
+            <li>the app depends on an active connection to the backend to open and function</li>
+            <li>without an internet connection, the user cannot access the vault</li>
+            <li>creation, editing, deletion, and reading of data require an online connection</li>
+            <li>the PWA service worker, if it exists, may only optimize asset loading; it does not enable offline
+                functional use</li>
+            <li>there is no offline sync queue in V1</li>
+        </ul>
+    </section>
+
+    <section id="v1-support-matrix" data-section="v1-support-matrix">
+        <h2>V1 Support Matrix</h2>
+        <p>Primary support scope:</p>
+        <ul>
+            <li>main target device: iPhone X</li>
+            <li>target operating system: iOS 16.7.x</li>
+            <li>target browser: Safari iOS and standalone PWA mode on the same WebKit engine</li>
+        </ul>
+        <p>Secondary scope:</p>
+        <ul>
+            <li>other devices may work due to compatibility but are outside the V1 support commitment</li>
+            <li>there will be no architectural adaptations for Android, desktop, or multiple browsers in this phase</li>
+        </ul>
+    </section>
+
+    <section id="ui-state-strategy" data-section="ui-state-strategy">
+        <h2>UI and State Strategy</h2>
+        <h3>Frontend</h3>
+        <ul>
+            <li>use Angular as the only frontend stack in V1</li>
+            <li>use HttpClient as the standard communication layer with the API</li>
+            <li>maintain Signals for local state and component sharing</li>
+        </ul>
+
+        <h3>Consistency rule</h3>
+        <p>If any future feature requires another frontend technology, it will only be included in a later phase with
+            explicit justification. V1 must not mix two HTTP clients or two competing patterns for the same layer.</p>
+    </section>
+
+    <section id="webauthn-behavior" data-section="webauthn-behavior">
+        <h2>WebAuthn Behavior</h2>
+        <p>Implementation rules:</p>
+        <ul>
+            <li>the app must rely on the device's native authenticator verification</li>
+            <li>internal biometric changes may remain valid if the system authenticator continues to accept the
+                credential</li>
+            <li>the system must treat authentication failures as authenticator verification failures, not cryptographic
+                failures</li>
+            <li>the frontend must alert about time discrepancies but cannot force synchronization of the operating
+                system clock</li>
+        </ul>
+    </section>
+
+    <section id="error-handling" data-section="error-handling">
+        <h2>Error Handling</h2>
+        <ul>
+            <li>expired challenge requires a new challenge</li>
+            <li>expired session requires new WebAuthn login</li>
+            <li>loss of local storage invalidates the device in V1</li>
+            <li>network failures must be handled without losing the local cryptographic state</li>
+        </ul>
+    </section>
+
+    <section id="quality-testing" data-section="quality-testing">
+        <h2>Quality and Testing</h2>
+        <p>Mandatory development rule:</p>
+        <ul>
+            <li>every feature must have relevant tests</li>
+            <li>CI must execute validations before merge</li>
+            <li>each layer must be testable in isolation</li>
+            <li>contracts between frontend and backend must be stable and documented</li>
+        </ul>
+    </section>
+
+    <section id="v1-delivery-plan" data-section="v1-delivery-plan">
+        <h2>V1 Delivery Plan</h2>
+        <h3>Phase 1 — Foundational</h3>
+        <ul>
+            <li>create Angular base</li>
+            <li>create FastAPI base</li>
+            <li>configure PostgreSQL, migrations, and Docker</li>
+            <li>define API contracts</li>
+        </ul>
+
+        <h3>Phase 2 — Authentication</h3>
+        <ul>
+            <li>register WebAuthn credentials</li>
+            <li>validate challenge and login</li>
+            <li>create session flow</li>
+        </ul>
+
+        <h3>Phase 3 — Local Encryption</h3>
+        <ul>
+            <li>generate Master Key on the device</li>
+            <li>encrypt and decrypt data on the client</li>
+            <li>persist encrypted blobs</li>
+        </ul>
+
+        <h3>Phase 4 — Vault</h3>
+        <ul>
+            <li>vault CRUD</li>
+            <li>optimized listing</li>
+            <li>quick password copy</li>
+        </ul>
+
+        <h3>Phase 5 — PWA</h3>
+        <ul>
+            <li>manifest</li>
+            <li>service worker</li>
+            <li>standalone installation</li>
+        </ul>
+
+        <h3>Phase 6 — Hardening</h3>
+        <ul>
+            <li>CSP</li>
+            <li>rate limit</li>
+            <li>auditing</li>
+            <li>security review</li>
+        </ul>
+
+        <h3>Phase 7 — Production</h3>
+        <ul>
+            <li>deploy on Render</li>
+            <li>basic observability</li>
+            <li>final validation in a real environment</li>
+        </ul>
+    </section>
+
+    <section id="out-of-scope" data-section="out-of-scope">
+        <h2>Out of Scope Items (V2)</h2>
+        <p>The following capabilities are out of V1 and should be planned later:</p>
+        <ul>
+            <li class="scope-out">account recovery via email</li>
+            <li class="scope-out">device migration</li>
+            <li class="scope-out">multiple devices per account</li>
+            <li class="scope-out">synchronized Master Key backup</li>
+            <li class="scope-out">vault sharing</li>
+            <li class="scope-out">advanced offline-first features</li>
+        </ul>
+    </section>
+
+    <section id="document-governance" data-section="document-governance">
+        <h2>Document Governance</h2>
+        <ul>
+            <li>this document must only be updated by explicit product decision</li>
+            <li>any requirement conflicting with this text must be treated as blocked until formal review</li>
+            <li>there are no parallel planning documents for V1</li>
+        </ul>
+    </section>
+
+    <section id="absolute-priority" data-section="absolute-priority">
+        <h2>Absolute Priority</h2>
+        <p>Security of the architecture, implementation consistency, and predictable behavior on a single device.</p>
+    </section>
+
+    <section id="architectural-decisions" data-section="architectural-decisions">
+        <h2>Architectural Decisions</h2>
+
+        <div class="arch-decision">
+            <details>
+                <summary>V1 Scope and Direction</summary>
+                <pre>## V1 Scope and Direction
+
+V1 is intentionally limited to maximize reliability, security, and delivery predictability.
+
+V1 scope rules:
+
+- one active user at a time on a single device
+- no account recovery flow in V1
+- no device migration in V1
+- no traditional password
+- no reading of sensitive content on the backend
+- no multiple frontend stacks</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>High-Level Architecture</summary>
+                <pre>## High-Level Architecture
+
+```
+User Device
+        ↓
+PWA Angular
+        ↓
+WebAuthn + Web Crypto API
+        ↓
+FastAPI
+        ↓
+PostgreSQL
+```</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Official V1 Stack</summary>
+                <pre>## Official V1 Stack
+
+### Frontend
+
+| Technology | Function |
+| --- | --- |
+| Angular | Main interface |
+| Angular CLI | Build and tooling |
+| PWA | Installation and use as an app |
+| WebAuthn API | Authentication with passkeys |
+| Web Crypto API | Client-side encryption |
+| HttpClient | Standard HTTP communication |
+| Signals | Local state and reactivity |
+
+### Backend
+
+| Technology | Function |
+| --- | --- |
+| Python | Main language |
+| FastAPI | Main API |
+| SQLAlchemy | ORM |
+| Alembic | Migrations |
+| Pydantic | Data validation |
+| PostgreSQL | Persistent source of truth |
+| Redis | Short-lived ephemeral data |
+| cryptography | Support cryptographic operations |
+| py_webauthn | WebAuthn credential validation |
+| Uvicorn | ASGI server |
+
+### Infrastructure
+
+| Technology | Function |
+| --- | --- |
+| Docker | Containerization |
+| Docker Compose | Local environment |
+| Render | Deployment |
+| GitHub | Repository |
+| GitHub Actions | CI/CD |</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Authentication Model</summary>
+                <pre>## Authentication Model
+
+### First login and device registration
+
+On first access, the user authenticates the device with WebAuthn/passkeys. The device's operating system may use Face ID, Touch ID, PIN, or the equivalent platform-supported method to confirm the user's presence and identity.
+
+During this first login:
+
+- the WebAuthn credential is created and associated with the user
+- the device is registered as the active device
+- the vault's local key is created on the device itself
+- the initial access unlocks the account session
+
+### Daily access
+
+After the first login, the user accesses the app using the operating system's verification via WebAuthn. In practice, this means the device requests biometric confirmation or the device's PIN to grant access.
+
+The app does not treat biometrics as a password. It simply requests authentication from the device's native authenticator.
+
+### Single-device policy
+
+In V1, the account is linked to only one active device.
+
+- if the user removes the app's local data, the device loses the link
+- if the device is replaced, the old registration cannot be reused in V1
+- simultaneous login on multiple devices is not allowed</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Encryption Model</summary>
+                <pre>## Encryption Model
+
+### Principles
+
+- the Master Key is generated on the device itself
+- sensitive data is encrypted on the client before reaching the backend
+- the backend stores only encrypted blobs and minimal metadata
+- the backend must never have access to the key that decrypts the vault data
+
+### Encryption flow
+
+```
+Real password or sensitive content
+        ↓
+Local encryption with Web Crypto API
+        ↓
+Encrypted blob
+        ↓
+API
+        ↓
+PostgreSQL
+```
+
+### Technical rules
+
+- use AES-GCM for vault data
+- generate a unique IV/nonce for each cryptographic operation
+- use `crypto.getRandomValues()` for secure random value generation
+- never reuse IV with the same key
+- store only what is necessary to restore local encryption on the device itself</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Data Structure</summary>
+                <pre>## Data Structure
+
+### users
+
+- id
+- email
+- account_status
+- created_at
+- updated_at
+
+### devices
+
+- id
+- user_id
+- credential_id
+- public_key
+- device_name
+- last_login_at
+- created_at
+
+### vaults
+
+- id
+- user_id
+- service_name
+- login_name
+- password_blob
+- notes_blob
+- created_at
+- updated_at
+
+### sessions
+
+- id
+- user_id
+- device_id
+- refresh_token_hash
+- issued_at
+- expires_at
+- last_activity_at
+- revoked_at
+- created_at</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Session Policy</summary>
+                <pre>## Session Policy
+
+Session behavior must be simple and predictable:
+
+- PostgreSQL is the source of truth for persistent sessions
+- Redis is used only for challenges, rate limits, and short expiration
+- Rate limiting on sensitive endpoints must include both client IP and user scope
+- the backend uses a short-lived JWT access token and an opaque refresh token
+- the refresh token must be stored only as a hash in the database
+- Redis is not a session authority; it does not replace persistent registration in PostgreSQL
+- session cookies must be `HttpOnly` and `Secure`
+- expiration and revocation must be centrally controlled on the backend
+
+V1 closed parameters:
+
+- WebAuthn challenge TTL: 90 seconds
+- JWT access token validity: 5 minutes
+- refresh token validity: 7 days
+- refresh token rotation: mandatory on each session renewal
+- refresh token reuse detection: immediately revoke the active device session
+- inactivity window to require new WebAuthn authentication: 60 seconds
+- clock skew tolerance between client and server: 120 seconds</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>V1 Features</summary>
+                <pre>## V1 Features
+
+### Authentication
+
+- passwordless registration with WebAuthn
+- login with passkeys and operating system verification
+- logout
+- session renewal
+- challenge expiration
+
+### Vault
+
+- CRUD for passwords
+- quick password copy
+- item listing with on-demand loading
+
+### Security
+
+- AES-GCM on the client
+- WebAuthn for authentication
+- short-lived JWT access token + opaque refresh token with hash persisted on the backend
+- CSP, rate limit (by IP + user on sensitive endpoints), CSRF when applicable, and mandatory HTTPS
+
+### Mobile/PWA
+
+- custom splash screen and icon
+- standalone mode
+- no offline functional support in V1</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Offline Behavior</summary>
+                <pre>## Offline Behavior
+
+V1 offline mode must follow these rules:
+
+- the app depends on an active connection to the backend to open and function
+- without an internet connection, the user cannot access the vault
+- creation, editing, deletion, and reading of data require an online connection
+- the PWA service worker, if it exists, may only optimize asset loading; it does not enable offline functional use
+- there is no offline sync queue in V1</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>V1 Support Matrix</summary>
+                <pre>## V1 Support Matrix
+
+Primary support scope:
+
+- main target device: iPhone X
+- target operating system: iOS 16.7.x
+- target browser: Safari iOS and standalone PWA mode on the same WebKit engine
+
+Secondary scope:
+
+- other devices may work due to compatibility but are outside the V1 support commitment
+- there will be no architectural adaptations for Android, desktop, or multiple browsers in this phase</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>UI and State Strategy</summary>
+                <pre>## UI and State Strategy
+
+### Frontend
+
+- use Angular as the only frontend stack in V1
+- use HttpClient as the standard communication layer with the API
+- maintain Signals for local state and component sharing
+
+### Consistency rule
+
+If any future feature requires another frontend technology, it will only be included in a later phase with explicit justification. V1 must not mix two HTTP clients or two competing patterns for the same layer.</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>WebAuthn Behavior</summary>
+                <pre>## WebAuthn Behavior
+
+Implementation rules:
+
+- the app must rely on the device's native authenticator verification
+- internal biometric changes may remain valid if the system authenticator continues to accept the credential
+- the system must treat authentication failures as authenticator verification failures, not cryptographic failures
+- the frontend must alert about time discrepancies but cannot force synchronization of the operating system clock</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Error Handling</summary>
+                <pre>## Error Handling
+
+- expired challenge requires a new challenge
+- expired session requires new WebAuthn login
+- loss of local storage invalidates the device in V1
+- network failures must be handled without losing the local cryptographic state</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Quality and Testing</summary>
+                <pre>## Quality and Testing
+
+Mandatory development rule:
+
+- every feature must have relevant tests
+- CI must execute validations before merge
+- each layer must be testable in isolation
+- contracts between frontend and backend must be stable and documented</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>V1 Delivery Plan</summary>
+                <pre>## V1 Delivery Plan
+
+### Phase 1 — Foundational
+
+- create Angular base
+- create FastAPI base
+- configure PostgreSQL, migrations, and Docker
+- define API contracts
+
+### Phase 2 — Authentication
+
+- register WebAuthn credentials
+- validate challenge and login
+- create session flow
+
+### Phase 3 — Local Encryption
+
+- generate Master Key on the device
+- encrypt and decrypt data on the client
+- persist encrypted blobs
+
+### Phase 4 — Vault
+
+- vault CRUD
+- optimized listing
+- quick password copy
+
+### Phase 5 — PWA
+
+- manifest
+- service worker
+- standalone installation
+
+### Phase 6 — Hardening
+
+- CSP
+- rate limit
+- auditing
+- security review
+
+### Phase 7 — Production
+
+- deploy on Render
+- basic observability
+- final validation in a real environment</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Out of Scope Items (V2)</summary>
+                <pre>## Out of Scope Items (V2)
+
+The following capabilities are out of V1 and should be planned later:
+
+- account recovery via email
+- device migration
+- multiple devices per account
+- synchronized Master Key backup
+- vault sharing
+- advanced offline-first features</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Document Governance</summary>
+                <pre>## Document Governance
+
+- this document must only be updated by explicit product decision
+- any requirement conflicting with this text must be treated as blocked until formal review
+- there are no parallel planning documents for V1</pre>
+            </details>
+        </div>
+
+        <div class="arch-decision">
+            <details>
+                <summary>Absolute Priority</summary>
+                <pre>## Absolute Priority
+
+Security of the architecture, implementation consistency, and predictable behavior on a single device.</pre>
+            </details>
+        </div>
+
+    </section>
+
+    
+
+</body>
+
+</html>
