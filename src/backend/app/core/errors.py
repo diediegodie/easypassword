@@ -2,14 +2,30 @@ from __future__ import annotations
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+
+class ErrorResponse(BaseModel):
+    detail: str
+    code: str | None = None
 
 
 class EasyPasswordError(Exception):
     status_code = 400
 
+    def __init__(self, detail: str | None = None, code: str | None = None):
+        self.detail = detail or ""
+        self.code = code
+        super().__init__(self.detail)
+
 
 class AuthError(EasyPasswordError):
     status_code = 401
+
+
+class ReauthenticationRequiredError(AuthError):
+    def __init__(self, detail: str = "Session expired due to inactivity") -> None:
+        super().__init__(detail=detail, code="ReauthenticationRequired")
 
 
 class ForbiddenError(EasyPasswordError):
@@ -29,8 +45,14 @@ class ValidationError(EasyPasswordError):
 
 
 def _exception_handler(status_code: int):
-    async def handler(_: Request, exc: EasyPasswordError) -> JSONResponse:
-        return JSONResponse(status_code=status_code, content={"detail": str(exc)})
+    async def handler(_: Request, exc: Exception) -> JSONResponse:
+        if isinstance(exc, EasyPasswordError):
+            content = {"detail": exc.detail}
+            if hasattr(exc, "code") and exc.code:
+                content["code"] = exc.code
+        else:
+            content = {"detail": str(exc)}
+        return JSONResponse(status_code=status_code, content=content)
 
     return handler
 

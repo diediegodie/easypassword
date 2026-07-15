@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infra.database import Base
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class Session(Base):
@@ -34,26 +39,26 @@ class Session(Base):
     previous_token_hash: Mapped[str | None] = mapped_column(
         sa.String(length=64), nullable=True
     )
-    issued_at: Mapped[sa.DateTime] = mapped_column(
+    issued_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True),
         nullable=False,
-        server_default=sa.text("now()"),
+        default=_utc_now,
     )
-    expires_at: Mapped[sa.DateTime] = mapped_column(
+    expires_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True), nullable=False
     )
-    last_activity_at: Mapped[sa.DateTime] = mapped_column(
+    last_activity_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True),
         nullable=False,
-        server_default=sa.text("now()"),
+        default=_utc_now,
     )
-    revoked_at: Mapped[sa.DateTime | None] = mapped_column(
+    revoked_at: Mapped[datetime | None] = mapped_column(
         sa.DateTime(timezone=True), nullable=True
     )
-    created_at: Mapped[sa.DateTime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True),
         nullable=False,
-        server_default=sa.text("now()"),
+        default=_utc_now,
     )
 
     __table_args__ = (

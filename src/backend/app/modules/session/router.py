@@ -40,7 +40,30 @@ def _resolve_refresh_token(
     raise AuthError("refresh token required")
 
 
-@router.post("/refresh")
+@router.post(
+    "/refresh",
+    responses={
+        200: {
+            "description": "Refresh token rotated and new access token returned.",
+            "content": {
+                "application/json": {
+                    "example": {"access_token": "<jwt-token>"}
+                }
+            },
+        },
+        401: {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Reauthentication required",
+                        "code": "ReauthenticationRequired",
+                    }
+                }
+            },
+        },
+    },
+)
 async def refresh_session(
     request: Request,
     response: Response,
