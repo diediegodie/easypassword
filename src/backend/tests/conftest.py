@@ -82,13 +82,12 @@ def test_settings(monkeypatch: pytest.MonkeyPatch) -> "Settings":
 
 
 @pytest.fixture()
-def app_client() -> Generator[TestClient, None, None]:
+async def app_client(db_session: AsyncSession) -> AsyncGenerator[TestClient, None]:
     from app.infra.database import get_db
     from main import app
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
-        async with test_session_factory() as session:
-            yield session
+        yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
     client = TestClient(app)
@@ -98,17 +97,34 @@ def app_client() -> Generator[TestClient, None, None]:
         app.dependency_overrides.clear()
 
 
-test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    echo=False,
-    future=True,
-    poolclass=NullPool,
-)
-test_session_factory = async_sessionmaker(
-    test_engine,
-    expire_on_commit=False,
-    class_=AsyncSession,
-)
+@pytest.fixture(scope="function")
+async def async_engine() -> AsyncGenerator:
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        future=True,
+        poolclass=NullPool,
+    )
+    try:
+        yield engine
+    finally:
+        await engine.dispose()
+
+
+@pytest.fixture(scope="function")
+async def db_session(async_engine: object) -> AsyncGenerator[AsyncSession, None]:
+    SessionLocal = async_sessionmaker(
+        bind=async_engine,
+        expire_on_commit=False,
+        class_=AsyncSession,
+    )
+
+    async with SessionLocal() as session:
+        try:
+            yield session
+        finally:
+            if session.in_transaction():
+                await session.rollback()
 
 
 # Use session-scoped loop to avoid "Event loop is closed" errors when sharing resources
@@ -134,10 +150,16 @@ async def configure_test_database() -> AsyncGenerator[None, None]:
 
     from app.infra.database import Base
 
-    async with test_engine.begin() as conn:
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        future=True,
+        poolclass=NullPool,
+    )
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
-    await test_engine.dispose()
+    await engine.dispose()
 
 
 # Provide a lightweight in-process async fake Redis for local, Docker-free
@@ -228,6 +250,7 @@ async def fake_redis(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 async def clean_database(
     configure_test_database: None,
+    async_engine: object,
 ) -> AsyncGenerator[None, None]:
     """Start each test from a clean database state."""
     run_integration = os.getenv("RUN_INTEGRATION") == "1"
@@ -235,15 +258,13 @@ async def clean_database(
         yield
         return
 
-    async with test_session_factory() as session:
-        await session.execute(text(TRUNCATE_TEST_DATA_SQL))
-        await session.commit()
+    async with async_engine.begin() as conn:
+        await conn.execute(text(TRUNCATE_TEST_DATA_SQL))
 
     yield
 
-    async with test_session_factory() as session:
-        await session.execute(text(TRUNCATE_TEST_DATA_SQL))
-        await session.commit()
+    async with async_engine.begin() as conn:
+        await conn.execute(text(TRUNCATE_TEST_DATA_SQL))
 
 
 def pytest_sessionstart(session):
@@ -271,8 +292,7 @@ def pytest_collection_modifyitems(config, items):
     run_integration = os.getenv("RUN_INTEGRATION") == "1"
     DB_FIXTURES = {
         "db_session",
-        "test_engine",
-        "test_session_factory",
+        "async_engine",
         "app_client",
         "async_db_session",
     }
@@ -292,12 +312,3 @@ def pytest_collection_modifyitems(config, items):
                     )
                 )
             )
-
-
-@pytest.fixture()
-async def db_session(configure_test_database: None):
-    """Provide async database session for tests."""
-    async with test_session_factory() as session:
-        yield session
-        # Cleanup: rollback any uncommitted changes
-        await session.rollback()
