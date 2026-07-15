@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
 import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
@@ -90,6 +91,11 @@ def test_settings(monkeypatch: pytest.MonkeyPatch) -> "Settings":
 
 
 @pytest.fixture()
+def anyio_backend() -> str:
+    return "asyncio"
+
+
+@pytest_asyncio.fixture()
 async def app_client(async_engine: AsyncEngine) -> AsyncGenerator[TestClient, None]:
     from app.infra.database import get_db
     from main import app
@@ -112,7 +118,7 @@ async def app_client(async_engine: AsyncEngine) -> AsyncGenerator[TestClient, No
         app.dependency_overrides.clear()
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
     engine = create_async_engine(
         TEST_DATABASE_URL,
@@ -126,7 +132,7 @@ async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
         await engine.dispose()
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
     SessionLocal = async_sessionmaker(
         bind=async_engine,
@@ -140,23 +146,10 @@ async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, 
         finally:
             if session.in_transaction():
                 await session.rollback()
+            await session.close()
 
 
-# Use session-scoped loop to avoid "Event loop is closed" errors when sharing resources
-# like redis_client across async tests in CI/Integration mode.
-@pytest.fixture(scope="session")
-def event_loop():
-    import asyncio
-
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def configure_test_database() -> AsyncGenerator[None, None]:
     run_integration = os.getenv("RUN_INTEGRATION") == "1"
     if not run_integration:
@@ -173,8 +166,10 @@ async def configure_test_database() -> AsyncGenerator[None, None]:
     )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
-    await engine.dispose()
+    try:
+        yield
+    finally:
+        await engine.dispose()
 
 
 # Provide a lightweight in-process async fake Redis for local, Docker-free
@@ -228,7 +223,7 @@ class AsyncFakeRedis:
         self._store.clear()
 
 
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 async def fake_redis(monkeypatch: pytest.MonkeyPatch):
     """Monkeypatch `app.infra.redis_client.redis_client` with an async in-memory
     fake when `RUN_INTEGRATION` is not set. In CI we set `RUN_INTEGRATION=1`.
@@ -262,7 +257,7 @@ async def fake_redis(monkeypatch: pytest.MonkeyPatch):
         fake._store.clear()
 
 
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 async def clean_database(
     configure_test_database: None,
     async_engine: AsyncEngine,
