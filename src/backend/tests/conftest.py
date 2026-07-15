@@ -8,7 +8,12 @@ from typing import TYPE_CHECKING
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import NullPool
 
 if TYPE_CHECKING:
@@ -98,7 +103,7 @@ async def app_client(db_session: AsyncSession) -> AsyncGenerator[TestClient, Non
 
 
 @pytest.fixture(scope="function")
-async def async_engine() -> AsyncGenerator:
+async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
     engine = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
@@ -112,7 +117,7 @@ async def async_engine() -> AsyncGenerator:
 
 
 @pytest.fixture(scope="function")
-async def db_session(async_engine: object) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
     SessionLocal = async_sessionmaker(
         bind=async_engine,
         expire_on_commit=False,
@@ -141,7 +146,7 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 async def configure_test_database() -> AsyncGenerator[None, None]:
     run_integration = os.getenv("RUN_INTEGRATION") == "1"
     if not run_integration:
@@ -250,7 +255,7 @@ async def fake_redis(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 async def clean_database(
     configure_test_database: None,
-    async_engine: object,
+    async_engine: AsyncEngine,
 ) -> AsyncGenerator[None, None]:
     """Start each test from a clean database state."""
     run_integration = os.getenv("RUN_INTEGRATION") == "1"
