@@ -6,7 +6,6 @@ from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
 import pytest
-import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
@@ -95,7 +94,7 @@ def anyio_backend() -> str:
     return "asyncio"
 
 
-@pytest_asyncio.fixture()
+@pytest.fixture()
 async def app_client(async_engine: AsyncEngine) -> AsyncGenerator[TestClient, None]:
     from app.infra.database import get_db
     from main import app
@@ -118,7 +117,7 @@ async def app_client(async_engine: AsyncEngine) -> AsyncGenerator[TestClient, No
         app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
     engine = create_async_engine(
         TEST_DATABASE_URL,
@@ -132,7 +131,7 @@ async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
         await engine.dispose()
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest.fixture(scope="function")
 async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
     SessionLocal = async_sessionmaker(
         bind=async_engine,
@@ -149,7 +148,7 @@ async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, 
             await session.close()
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest.fixture(scope="session")
 async def configure_test_database() -> AsyncGenerator[None, None]:
     run_integration = os.getenv("RUN_INTEGRATION") == "1"
     if not run_integration:
@@ -223,7 +222,7 @@ class AsyncFakeRedis:
         self._store.clear()
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest.fixture(autouse=True)
 async def fake_redis(monkeypatch: pytest.MonkeyPatch):
     """Monkeypatch `app.infra.redis_client.redis_client` with an async in-memory
     fake when `RUN_INTEGRATION` is not set. In CI we set `RUN_INTEGRATION=1`.
@@ -257,7 +256,7 @@ async def fake_redis(monkeypatch: pytest.MonkeyPatch):
         fake._store.clear()
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest.fixture(autouse=True)
 async def clean_database(
     configure_test_database: None,
     async_engine: AsyncEngine,
