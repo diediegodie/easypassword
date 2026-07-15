@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import sqlalchemy as sa
@@ -27,7 +27,11 @@ from webauthn.helpers.structs import (
 
 from app.core.config import settings
 from app.core.errors import AuthError, ConflictError
-from app.infra.redis_client import get_challenge, set_challenge
+from app.infra.redis_client import (
+    clear_device_reauthentication_required,
+    get_challenge,
+    set_challenge,
+)
 from app.modules.auth.models import Device, User
 
 
@@ -227,6 +231,21 @@ async def verify_authentication_credential(
     if device.credential_id != challenge_payload["credential_id"]:
         raise AuthError("credential mismatch")
 
+    created_at_str = challenge_payload.get("created_at")
+    if created_at_str:
+        try:
+            created_at = datetime.fromisoformat(created_at_str)
+        except ValueError as exc:
+            raise AuthError("invalid challenge data") from exc
+
+        if datetime.now(timezone.utc) > created_at + timedelta(
+            seconds=(
+                settings.WEBAUTHN_CHALLENGE_TTL_SECONDS
+                + settings.CLOCK_SKEW_TOLERANCE_SECONDS
+            )
+        ):
+            raise AuthError("challenge expired or invalid")
+
     try:
         verified_assertion = verify_authentication_response(
             credential=credential,
@@ -243,6 +262,7 @@ async def verify_authentication_credential(
     device.sign_count = verified_assertion.new_sign_count or device.sign_count
     device.last_login_at = datetime.now(timezone.utc)
 
+    await clear_device_reauthentication_required(str(device_id))
     await db.commit()
 
     return user_id, device_id
@@ -290,6 +310,21 @@ async def verify_registration_credential(
     device_metadata = challenge_payload.get("device_metadata", {})
 
     # Verify attestation response
+    created_at_str = challenge_payload.get("created_at")
+    if created_at_str:
+        try:
+            created_at = datetime.fromisoformat(created_at_str)
+        except ValueError as exc:
+            raise AuthError("invalid challenge data") from exc
+
+        if datetime.now(timezone.utc) > created_at + timedelta(
+            seconds=(
+                settings.WEBAUTHN_CHALLENGE_TTL_SECONDS
+                + settings.CLOCK_SKEW_TOLERANCE_SECONDS
+            )
+        ):
+            raise AuthError("challenge expired or invalid")
+
     try:
         verified_credential = verify_registration_response(
             credential=credential,

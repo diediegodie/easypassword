@@ -40,7 +40,7 @@ RUN_INTEGRATION=1 pytest tests/integration/ -v --tb=short
 
 ```bash
 cd /home/diediegodie/documentos/github/projetos/easypassword/src/infra/docker
-docker-compose up -d
+docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
 sleep 5
 ```
 
@@ -55,7 +55,7 @@ RUN_INTEGRATION=1 pytest -v --tb=short
 
 ```bash
 cd /home/diediegodie/documentos/github/projetos/easypassword/src/infra/docker
-docker-compose down
+docker compose -f docker-compose.yml -f docker-compose.override.yml down
 ```
 
 ## 4. Running inside the backend container

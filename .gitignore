@@ -40,11 +40,15 @@ redis_data/
 src/frontend/node_modules/
 src/frontend/dist/
 src/frontend/coverage/
+src/frontend/.angular/
 
 # Backend artifacts
 src/backend/dist/
 src/backend/coverage/
 src/backend/.venv/
+
+# Local caches
+.cache/
 
 # Local runtime files
 *.log

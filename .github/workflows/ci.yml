@@ -85,5 +85,4 @@ jobs:
       - name: Run database migrations
         run: alembic upgrade head
       - name: Run tests
-        run: pytest
-
+        run: pytest -q -m "integration or not integration"

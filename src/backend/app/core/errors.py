@@ -48,8 +48,9 @@ def _exception_handler(status_code: int):
     async def handler(_: Request, exc: Exception) -> JSONResponse:
         if isinstance(exc, EasyPasswordError):
             content = {"detail": exc.detail}
-            if hasattr(exc, "code") and exc.code:
-                content["code"] = exc.code
+            code = getattr(exc, "code", None)
+            if code is not None:
+                content["code"] = code
         else:
             content = {"detail": str(exc)}
         return JSONResponse(status_code=status_code, content=content)

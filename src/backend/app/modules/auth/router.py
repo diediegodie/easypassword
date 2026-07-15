@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rate_limit import require_rate_limit
+from app.core.security import refresh_cookie_secure
 from app.infra.database import get_db
 from app.modules.auth.schemas import (
     AuthenticationCompletionRequest,
@@ -113,7 +114,7 @@ async def login_verify(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,
+        secure=refresh_cookie_secure(),
         samesite="strict",
         path="/",
     )
@@ -162,7 +163,7 @@ async def register_verify(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,
+        secure=refresh_cookie_secure(),
         samesite="strict",
         path="/",
     )

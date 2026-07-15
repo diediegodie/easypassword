@@ -26,14 +26,33 @@ def create_access_token(data: dict[str, Any]) -> str:
 
 def decode_access_token(token: str) -> dict[str, Any]:
     try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=["HS256"],
+            options={"verify_exp": False},
+        )
     except JWTError as exc:
         raise AuthError("invalid or expired token") from exc
+
+    exp = payload.get("exp")
+    if not isinstance(exp, int):
+        raise AuthError("invalid or expired token")
+
+    now = int(datetime.now(timezone.utc).timestamp())
+    if now > exp + settings.CLOCK_SKEW_TOLERANCE_SECONDS:
+        raise AuthError("invalid or expired token")
+
+    return payload
 
 
 def generate_refresh_token() -> str:
     token_bytes = secrets.token_bytes(32)
     return base64.urlsafe_b64encode(token_bytes).decode("ascii").rstrip("=")
+
+
+def refresh_cookie_secure() -> bool:
+    return settings.APP_ENV != "development"
 
 
 def hash_refresh_token(token: str) -> str:

@@ -4,18 +4,26 @@ from __future__ import annotations
 
 import json
 import uuid
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.errors import AuthError
-from app.infra.redis_client import get_challenge
+from app.core.config import settings
+from app.core.errors import AuthError, ReauthenticationRequiredError
+from app.infra.redis_client import (
+    get_challenge,
+    is_device_reauthentication_required,
+)
 from app.modules.auth.models import Device, User
 from app.modules.auth.service import (
     generate_authentication_options_for_user,
     verify_authentication_credential,
 )
+from app.modules.session.models import Session as SessionModel
+from app.modules.session.service import create_session, rotate_session
 
 pytestmark = pytest.mark.integration
 
@@ -202,6 +210,68 @@ async def test_authentication_challenge_replay_protection(
             authentication_id=authentication_id,
             credential=mock_credential,
         )
+
+
+@pytest.mark.asyncio
+async def test_inactivity_reauthentication_flag_lifecycle(
+    db_session: AsyncSession,
+) -> None:
+    user = User(email="reauth-lifecycle@example.com", account_status="active")
+    db_session.add(user)
+    await db_session.flush()
+
+    device = Device(
+        user_id=user.id,
+        credential_id="reauth-cred",
+        public_key=b"reauth-key",
+        sign_count=0,
+        device_name="Device",
+        device_metadata={},
+        is_active=True,
+    )
+    db_session.add(device)
+    await db_session.commit()
+
+    access_token, refresh_token = await create_session(db_session, user.id, device.id)
+    assert access_token
+    assert refresh_token
+
+    session = (await db_session.execute(select(SessionModel))).scalar_one_or_none()
+    assert session is not None
+
+    session.last_activity_at = datetime.now(timezone.utc) - timedelta(
+        seconds=settings.INACTIVITY_TIMEOUT_SECONDS + 1
+    )
+    await db_session.commit()
+
+    with pytest.raises(ReauthenticationRequiredError):
+        await rotate_session(db_session, refresh_token)
+
+    assert await is_device_reauthentication_required(str(device.id)) is True
+
+    authentication_id, _ = await generate_authentication_options_for_user(
+        db=db_session,
+        email=user.email,
+    )
+
+    mock_credential = {"id": "credential-id", "response": {}}
+
+    with patch(
+        "app.modules.auth.service.verify_authentication_response"
+    ) as mock_verify:
+        mock_verified = MagicMock()
+        mock_verified.new_sign_count = 2
+        mock_verify.return_value = mock_verified
+
+        returned_user_id, returned_device_id = await verify_authentication_credential(
+            db=db_session,
+            authentication_id=authentication_id,
+            credential=mock_credential,
+        )
+
+    assert returned_user_id == user.id
+    assert returned_device_id == device.id
+    assert await is_device_reauthentication_required(str(device.id)) is False
 
 
 @pytest.mark.asyncio

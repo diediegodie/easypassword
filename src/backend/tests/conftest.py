@@ -8,7 +8,9 @@ from typing import TYPE_CHECKING
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
+from redis.asyncio import Redis
 from sqlalchemy import text
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -24,25 +26,53 @@ if TYPE_CHECKING:
 def is_postgres_ready():
     """Check if PostgreSQL is accessible for integration tests."""
     try:
-        from sqlalchemy import create_engine, text
+        from urllib.parse import urlparse
 
-        db_url = os.getenv(
-            "TEST_DATABASE_URL",
+        import psycopg2
+
+        db_url = _normalize_service_url(
             os.getenv(
-                "DATABASE_URL",
-                "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db",
-            ),
+                "TEST_DATABASE_URL",
+                os.getenv(
+                    "DATABASE_URL",
+                    "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db",
+                ),
+            )
         )
-        sync_url = db_url.replace("+asyncpg", "")
-        engine = create_engine(sync_url)
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
+        parsed = urlparse(db_url.replace("+asyncpg", ""))
+        connection = psycopg2.connect(
+            dbname=parsed.path.lstrip("/"),
+            user=parsed.username,
+            password=parsed.password,
+            host=parsed.hostname,
+            port=parsed.port,
+        )
+        connection.close()
         return True
     except Exception:
         return False
 
 
 _IN_DOCKER = os.path.exists("/.dockerenv")
+
+
+def _normalize_service_url(url: str) -> str:
+    try:
+        parsed = make_url(url)
+    except Exception:
+        return url
+
+    if parsed.drivername in {"postgresql", "postgres"}:
+        parsed = parsed.set(drivername="postgresql+asyncpg")
+
+    if _IN_DOCKER:
+        return parsed.render_as_string(hide_password=False)
+
+    if parsed.host in {"postgres", "redis"}:
+        return parsed.set(host="localhost").render_as_string(hide_password=False)
+
+    return parsed.render_as_string(hide_password=False)
+
 
 _DATABASE_URL = (
     "postgresql+asyncpg://easypassword_user:dev_password@postgres:5432/easypassword"
@@ -51,20 +81,27 @@ _DATABASE_URL = (
 )
 _REDIS_URL = "redis://redis:6379/0" if _IN_DOCKER else "redis://localhost:6379/0"
 
+CURRENT_DATABASE_URL = _normalize_service_url(os.getenv("DATABASE_URL", _DATABASE_URL))
+CURRENT_REDIS_URL = _normalize_service_url(os.getenv("REDIS_URL", _REDIS_URL))
+
+os.environ["DATABASE_URL"] = CURRENT_DATABASE_URL
+os.environ["REDIS_URL"] = CURRENT_REDIS_URL
+
+TEST_DATABASE_URL = _normalize_service_url(
+    os.getenv("TEST_DATABASE_URL", CURRENT_DATABASE_URL)
+)
+TEST_REDIS_URL = _normalize_service_url(os.getenv("TEST_REDIS_URL", CURRENT_REDIS_URL))
+
 _TEST_ENV = {
     "APP_ENV": "development",
     "DEBUG": "false",
     "SECRET_KEY": "test-secret-key",
-    "DATABASE_URL": _DATABASE_URL,
-    "REDIS_URL": _REDIS_URL,
+    "DATABASE_URL": TEST_DATABASE_URL,
+    "REDIS_URL": TEST_REDIS_URL,
     "WEBAUTHN_RP_ID": "localhost",
     "WEBAUTHN_ORIGIN": "http://localhost:8000",
 }
 
-TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL",
-    os.getenv("DATABASE_URL", _TEST_ENV["DATABASE_URL"]),
-)
 TRUNCATE_TEST_DATA_SQL = (
     "TRUNCATE TABLE sessions, vaults, devices, users RESTART IDENTITY CASCADE"
 )
@@ -110,12 +147,15 @@ async def app_client(async_engine: AsyncEngine) -> AsyncGenerator[TestClient, No
         async with SessionLocal() as session:
             yield session
 
+    original_db_session_factory = getattr(app.state, "db_session_factory", None)
     app.dependency_overrides[get_db] = override_get_db
+    app.state.db_session_factory = SessionLocal
     client = TestClient(app)
     try:
         yield client
     finally:
         app.dependency_overrides.clear()
+        app.state.db_session_factory = original_db_session_factory
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -224,27 +264,29 @@ class AsyncFakeRedis:
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def fake_redis(monkeypatch: pytest.MonkeyPatch):
+async def fake_redis(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch):
     """Monkeypatch `app.infra.redis_client.redis_client` with an async in-memory
     fake when `RUN_INTEGRATION` is not set. In CI we set `RUN_INTEGRATION=1`.
-    Even in CI we monkeypatch a fresh real client per test to avoid loop closure issues.
+    Use a real Redis client only for integration tests, and keep a fake client for
+    other tests to avoid event loop closing issues.
     """
     run_real = os.getenv("RUN_INTEGRATION", "").lower() in ("1", "true", "yes")
-    if run_real:
-        from redis.asyncio import Redis
+    is_integration = request.node.get_closest_marker("integration") is not None
 
-        from app.core.config import settings
-
-        real_fake = Redis.from_url(settings.REDIS_URL, decode_responses=False)
-        monkeypatch.setattr("app.infra.redis_client.redis_client", real_fake)
+    if run_real and is_integration:
+        redis_url = os.environ["REDIS_URL"]
+        redis = Redis.from_url(redis_url)
         try:
-            yield real_fake
+            await redis.flushdb()
+        except Exception:
+            pass
+        monkeypatch.setattr("app.infra.redis_client.redis_client", None)
+        try:
+            yield redis
         finally:
             try:
-                await real_fake.close()
+                await redis.close()
             except RuntimeError:
-                # pytest may finalize this fixture after loop shutdown
-                # in some integration paths; don't fail test teardown.
                 pass
         return
 

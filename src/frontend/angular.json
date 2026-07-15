@@ -5,8 +5,31 @@
   "projects": {
     "easypassword": {
       "projectType": "application",
+      "root": "",
       "sourceRoot": "src",
-      "prefix": "app"
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/easypassword",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": [],
+            "tsConfig": "tsconfig.json",
+            "assets": ["src/assets"],
+            "styles": [],
+            "scripts": []
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "easypassword:build"
+          }
+        }
+      }
     }
-  }
+  },
+  "defaultProject": "easypassword"
 }

@@ -3,9 +3,11 @@ from __future__ import annotations
 from typing import Callable
 
 from fastapi import Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
+from app.core.errors import EasyPasswordError
 from app.modules.session.service import validate_session_activity
 
 PUBLIC_PATH_PREFIXES = (
@@ -48,5 +50,15 @@ class SessionActivityMiddleware(BaseHTTPMiddleware):
                 session_factory = getattr(request.app.state, "db_session_factory", None)
                 if session_factory is not None:
                     async with session_factory() as db:
-                        await validate_session_activity(db, token)
+                        try:
+                            payload = await validate_session_activity(db, token)
+                            request.state.current_user_payload = payload
+                        except EasyPasswordError as exc:
+                            content = {"detail": exc.detail}
+                            code = getattr(exc, "code", None)
+                            if code is not None:
+                                content["code"] = code
+                            return JSONResponse(
+                                status_code=exc.status_code, content=content
+                            )
         return await call_next(request)
