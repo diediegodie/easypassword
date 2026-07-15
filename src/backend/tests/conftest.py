@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
 import pytest
