@@ -19,7 +19,9 @@ from app.modules.session.service import (
 
 
 @pytest.mark.anyio
-async def test_session_valid_at_59_seconds_access_allowed(db_session: AsyncSession) -> None:
+async def test_session_valid_at_59_seconds_access_allowed(
+    db_session: AsyncSession,
+) -> None:
     user = User(email="session-valid@example.com")
     db_session.add(user)
     await db_session.flush()
@@ -44,7 +46,9 @@ async def test_session_valid_at_59_seconds_access_allowed(db_session: AsyncSessi
 
 
 @pytest.mark.anyio
-async def test_session_expired_at_61_seconds_access_denied(db_session: AsyncSession) -> None:
+async def test_session_expired_at_61_seconds_access_denied(
+    db_session: AsyncSession,
+) -> None:
     user = User(email="session-expired@example.com")
     db_session.add(user)
     await db_session.flush()

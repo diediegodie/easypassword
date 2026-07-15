@@ -35,7 +35,9 @@ def _should_validate_request(request: Request) -> bool:
     if request.url.path is None:
         return False
 
-    return not any(request.url.path.startswith(prefix) for prefix in PUBLIC_PATH_PREFIXES)
+    return not any(
+        request.url.path.startswith(prefix) for prefix in PUBLIC_PATH_PREFIXES
+    )
 
 
 class SessionActivityMiddleware(BaseHTTPMiddleware):

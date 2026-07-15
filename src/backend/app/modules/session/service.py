@@ -175,7 +175,8 @@ async def get_current_user_and_device(
 
 
 async def get_current_active_user_and_device(
-    token: str, db: AsyncSession,
+    token: str,
+    db: AsyncSession,
 ) -> tuple[UUID, UUID]:
     await validate_session_activity(db, token)
     return await get_current_user_and_device(token, db)

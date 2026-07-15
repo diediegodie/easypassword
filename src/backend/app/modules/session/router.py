@@ -46,9 +46,7 @@ def _resolve_refresh_token(
         200: {
             "description": "Refresh token rotated and new access token returned.",
             "content": {
-                "application/json": {
-                    "example": {"access_token": "<jwt-token>"}
-                }
+                "application/json": {"example": {"access_token": "<jwt-token>"}}
             },
         },
         401: {
