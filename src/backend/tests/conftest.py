@@ -60,13 +60,16 @@ _TEST_ENV = {
     "WEBAUTHN_ORIGIN": "http://localhost:8000",
 }
 
-TEST_DATABASE_URL = _TEST_ENV["DATABASE_URL"]
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    os.getenv("DATABASE_URL", _TEST_ENV["DATABASE_URL"]),
+)
 TRUNCATE_TEST_DATA_SQL = (
     "TRUNCATE TABLE sessions, vaults, devices, users RESTART IDENTITY CASCADE"
 )
 
 for key, value in _TEST_ENV.items():
-    os.environ[key] = value
+    os.environ.setdefault(key, value)
 
 
 @pytest.fixture()
@@ -87,12 +90,19 @@ def test_settings(monkeypatch: pytest.MonkeyPatch) -> "Settings":
 
 
 @pytest.fixture()
-async def app_client(db_session: AsyncSession) -> AsyncGenerator[TestClient, None]:
+async def app_client(async_engine: AsyncEngine) -> AsyncGenerator[TestClient, None]:
     from app.infra.database import get_db
     from main import app
 
+    SessionLocal = async_sessionmaker(
+        bind=async_engine,
+        expire_on_commit=False,
+        class_=AsyncSession,
+    )
+
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
-        yield db_session
+        async with SessionLocal() as session:
+            yield session
 
     app.dependency_overrides[get_db] = override_get_db
     client = TestClient(app)
