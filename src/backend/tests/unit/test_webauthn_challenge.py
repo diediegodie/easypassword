@@ -23,7 +23,9 @@ def test_set_challenge_uses_ttl(monkeypatch) -> None:
 
     asyncio.run(rc.set_challenge(challenge_id, challenge_bytes))
 
-    assert recorded["ttl"] == settings.WEBAUTHN_CHALLENGE_TTL_SECONDS
+    assert recorded["ttl"] == (
+        settings.WEBAUTHN_CHALLENGE_TTL_SECONDS + settings.CLOCK_SKEW_TOLERANCE_SECONDS
+    )
     assert recorded["value"] == challenge_bytes
     assert recorded["key"] == WEBAUTHN_CHALLENGE_KEY.format(challenge_id)
 

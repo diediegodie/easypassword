@@ -21,7 +21,7 @@ This document describes the Redis-backed ephemeral components used in V1: WebAut
 
 ## Challenge storage behavior
 
-- `set_challenge(challenge_id, challenge_bytes)` stores the challenge using `SETEX` with the configured TTL.
+- `set_challenge(challenge_id, challenge_bytes)` stores the challenge using `SETEX` with the challenge TTL plus the configured clock-skew tolerance so the Redis entry matches server-side expiration checks.
 - `get_challenge(challenge_id)` attempts to atomically consume the challenge using `GETDEL` when available; if `GETDEL` is not available, it falls back to `GET` followed by `DEL`.
 
 ## Rate limiting
