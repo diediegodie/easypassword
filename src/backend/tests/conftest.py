@@ -139,13 +139,13 @@ async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, 
         class_=AsyncSession,
     )
 
-    async with SessionLocal() as session:
-        try:
-            yield session
-        finally:
-            if session.in_transaction():
-                await session.rollback()
-            await session.close()
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        if session.in_transaction():
+            await session.rollback()
+        await session.close()
 
 
 @pytest.fixture(scope="session")
