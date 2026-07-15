@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from uuid import UUID
 
 from app.core.errors import AuthError
 from app.infra.database import get_db
