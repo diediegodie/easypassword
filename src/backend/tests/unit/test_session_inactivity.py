@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, patch
 
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.core.errors import AuthError, ReauthenticationRequiredError
+from app.core.errors import ReauthenticationRequiredError
 from app.modules.auth.models import Device, User
 from app.modules.session.models import Session as SessionModel
 from app.modules.session.service import (

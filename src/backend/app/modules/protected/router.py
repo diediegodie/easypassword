@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
 from app.core.errors import AuthError
 from app.infra.database import get_db
@@ -9,11 +10,13 @@ from app.modules.session.service import get_current_active_user_and_device
 
 router = APIRouter(prefix="/protected", tags=["protected"])
 
+get_db_dependency = Depends(get_db)
+
 
 async def require_active_session(
     authorization: str | None = Header(None),
-    db: AsyncSession = Depends(get_db),
-) -> tuple[str, str]:
+    db: AsyncSession = get_db_dependency,
+) -> tuple[UUID, UUID]:
     if not authorization:
         raise AuthError("invalid or expired token")
 
