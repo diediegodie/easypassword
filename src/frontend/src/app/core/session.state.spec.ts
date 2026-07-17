@@ -6,7 +6,10 @@ describe('SessionState', () => {
   let state: SessionState;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [HttpClientTestingModule], providers: [SessionState] });
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [SessionState],
+    });
     state = TestBed.inject(SessionState);
   });
 
