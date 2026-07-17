@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { SessionState } from './session.state';
 
 describe('SessionState', () => {
   let state: SessionState;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [SessionState] });
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule], providers: [SessionState] });
     state = TestBed.inject(SessionState);
   });
 

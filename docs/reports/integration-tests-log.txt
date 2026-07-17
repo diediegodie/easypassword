@@ -1,0 +1,4 @@
+Checking services for integration tests...
+PostgreSQL OK
+..........................................                               [100%]
+42 passed in 20.23s

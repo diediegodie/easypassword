@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
@@ -26,12 +27,12 @@ class Vault(Base):
     login_name: Mapped[str] = mapped_column(sa.String(length=255), nullable=False)
     password_blob: Mapped[bytes] = mapped_column(sa.LargeBinary(), nullable=False)
     notes_blob: Mapped[bytes | None] = mapped_column(sa.LargeBinary(), nullable=True)
-    created_at: Mapped[sa.DateTime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True),
         nullable=False,
         server_default=sa.text("now()"),
     )
-    updated_at: Mapped[sa.DateTime] = mapped_column(
+    updated_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True),
         nullable=False,
         server_default=sa.text("now()"),

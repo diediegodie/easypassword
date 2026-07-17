@@ -11,4 +11,8 @@ WEBAUTHN_CHALLENGE_KEY = "webauthn:challenge:{}"
 DEVICE_REAUTH_REQUIRED_KEY = "device:reauth:{}"
 RATE_LIMIT_KEY = "rate_limit:{client_ip}:{user}:{path}"
 
-__all__ = ["WEBAUTHN_CHALLENGE_KEY", "RATE_LIMIT_KEY"]
+__all__ = [
+    "WEBAUTHN_CHALLENGE_KEY",
+    "DEVICE_REAUTH_REQUIRED_KEY",
+    "RATE_LIMIT_KEY",
+]

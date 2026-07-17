@@ -1,18 +1,27 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AppComponent } from './app.component';
-import { LoginVerifyComponent } from './auth/login-verify.component';
-import { ReauthToastComponent } from './auth/reauth-toast.component';
-import { VaultComponent } from './vault.component';
 import { appRoutes } from './app.routes';
 import { ReauthInterceptor } from './core/reauth.interceptor';
+import { AuthModule } from './auth/auth.module';
+import { CoreModule } from './core/core.module';
+import { SharedModule } from './shared/shared.module';
+import { VaultModule } from './vault/vault.module';
 
 @NgModule({
-  declarations: [AppComponent, LoginVerifyComponent, ReauthToastComponent, VaultComponent],
-  imports: [BrowserModule, HttpClientModule, ReactiveFormsModule, RouterModule.forRoot(appRoutes)],
+  declarations: [AppComponent],
+  imports: [
+    BrowserModule,
+    CoreModule,
+    AuthModule,
+    VaultModule,
+    SharedModule,
+    ReactiveFormsModule,
+    RouterModule.forRoot(appRoutes),
+  ],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,

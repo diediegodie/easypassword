@@ -77,6 +77,23 @@ async def rotate_session(db: AsyncSession, refresh_token: str) -> tuple[str, str
         raise AuthError("invalid refresh token")
 
     session, device = row
+    now = datetime.now(timezone.utc)
+    if (
+        session.previous_token_hash is not None
+        and session.previous_token_hash == token_hash
+    ):
+        session.revoked_at = now
+        await db.commit()
+        logger.warning(
+            "refresh_token_reuse_detected",
+            extra={
+                "session_id": str(session.id),
+                "device_id": str(session.device_id),
+                "user_id": str(session.user_id),
+            },
+        )
+        raise AuthError("token reuse detected")
+
     if session.revoked_at is not None:
         logger.warning(
             "refresh_token_revoked_session",
@@ -88,7 +105,6 @@ async def rotate_session(db: AsyncSession, refresh_token: str) -> tuple[str, str
         )
         raise AuthError("invalid refresh token")
 
-    now = datetime.now(timezone.utc)
     if session.expires_at <= now:
         session.revoked_at = now
         await db.commit()
@@ -112,22 +128,6 @@ async def rotate_session(db: AsyncSession, refresh_token: str) -> tuple[str, str
             },
         )
         raise AuthError("inactive or expired token")
-
-    if (
-        session.previous_token_hash is not None
-        and session.previous_token_hash == token_hash
-    ):
-        session.revoked_at = now
-        await db.commit()
-        logger.warning(
-            "refresh_token_reuse_detected",
-            extra={
-                "session_id": str(session.id),
-                "device_id": str(session.device_id),
-                "user_id": str(session.user_id),
-            },
-        )
-        raise AuthError("token reuse detected")
 
     session_last_activity = session.last_activity_at
     if session_last_activity is None:

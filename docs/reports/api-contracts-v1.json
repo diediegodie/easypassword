@@ -1,0 +1,1203 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EasyPassword API",
+    "description": "Passwordless vault with WebAuthn and end-to-end encryption",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/session/refresh": {
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Refresh Session",
+        "operationId": "refresh_session_api_v1_session_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/SessionTokenPayload"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refresh token rotated and new access token returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Refresh Session Api V1 Session Refresh Post"
+                },
+                "example": {
+                  "access_token": "<jwt-token>"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/session/revoke": {
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Revoke Session Route",
+        "operationId": "revoke_session_route_api_v1_session_revoke_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/SessionTokenPayload"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Revoke Session Route Api V1 Session Revoke Post"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/session/": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "List Sessions",
+        "operationId": "list_sessions_api_v1_session__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SessionListItem"
+                  },
+                  "type": "array",
+                  "title": "Response List Sessions Api V1 Session  Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/ping": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Ping",
+        "operationId": "ping_api_v1_auth_ping_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Ping Api V1 Auth Ping Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register/options": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register Options",
+        "description": "Initiate WebAuthn registration for a new device.\n\nThis endpoint generates WebAuthn registration options and stores a challenge\nin Redis for one-time consumption during verification. If the user doesn't exist,\nthey will be created. If the user already has an active device, a 409 Conflict\nis returned (single-device policy).\n\nReturns:\n    registration_id: Unique identifier for this registration session\n    public_key: WebAuthn registration options for navigator.credentials.create()",
+        "operationId": "register_options_api_v1_auth_register_options_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationInitiationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationInitiationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login/options": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login Options",
+        "description": "Initiate WebAuthn authentication for an existing device.\n\nThis endpoint returns WebAuthn assertion options and stores a one-time\nchallenge in Redis. The login flow is only valid for an active device.",
+        "operationId": "login_options_api_v1_auth_login_options_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationInitiationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationInitiationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login Verify",
+        "description": "Complete WebAuthn authentication and issue session tokens.\n\nThe challenge is consumed one-time from Redis. After successful verification,\nan access token is returned and a refresh token cookie is set.",
+        "operationId": "login_verify_api_v1_auth_login_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationCompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationCompletionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register Verify",
+        "description": "Complete WebAuthn registration and issue initial session.\n\nThis endpoint verifies the WebAuthn attestation credential, persists the device,\nand issues initial session tokens. The challenge is consumed one-time from Redis\nand cannot be reused. After successful verification, an access token is returned\nin the response and a refresh token is set in an HttpOnly cookie.\n\nReturns:\n    access_token: JWT access token (5-minute TTL)\n    device_id: UUID of the registered device\n    user_id: UUID of the user\n    token_type: Always \"Bearer\"",
+        "operationId": "register_verify_api_v1_auth_register_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationCompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationCompletionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/protected/test": {
+      "get": {
+        "tags": [
+          "protected"
+        ],
+        "summary": "Test Protected",
+        "operationId": "test_protected_api_v1_protected_test_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Test Protected Api V1 Protected Test Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vault/": {
+      "get": {
+        "tags": [
+          "vault"
+        ],
+        "summary": "List Vault",
+        "operationId": "list_vault_api_v1_vault__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VaultItemResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Vault Api V1 Vault  Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "vault"
+        ],
+        "summary": "Create Vault",
+        "operationId": "create_vault_api_v1_vault__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VaultCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VaultItemResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vault/{vault_id}": {
+      "put": {
+        "tags": [
+          "vault"
+        ],
+        "summary": "Update Vault",
+        "operationId": "update_vault_api_v1_vault__vault_id__put",
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Vault Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VaultUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VaultItemResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "vault"
+        ],
+        "summary": "Delete Vault",
+        "operationId": "delete_vault_api_v1_vault__vault_id__delete",
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Vault Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Vault Api V1 Vault  Vault Id  Delete"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Check Health Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed or reauthentication required.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Reauthentication required",
+                  "code": "ReauthenticationRequired"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthenticationCompletionRequest": {
+        "properties": {
+          "authentication_id": {
+            "type": "string",
+            "title": "Authentication Id",
+            "description": "The authentication_id returned from initiation endpoint"
+          },
+          "credential": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credential",
+            "description": "Full assertion payload from navigator.credentials.get()"
+          }
+        },
+        "type": "object",
+        "required": [
+          "authentication_id",
+          "credential"
+        ],
+        "title": "AuthenticationCompletionRequest",
+        "description": "Request schema for WebAuthn authentication completion."
+      },
+      "AuthenticationCompletionResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "device_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Device Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "Bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "device_id",
+          "user_id"
+        ],
+        "title": "AuthenticationCompletionResponse",
+        "description": "Response schema for WebAuthn authentication completion."
+      },
+      "AuthenticationInitiationRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "AuthenticationInitiationRequest",
+        "description": "Request schema for WebAuthn authentication initiation."
+      },
+      "AuthenticationInitiationResponse": {
+        "properties": {
+          "authentication_id": {
+            "type": "string",
+            "title": "Authentication Id",
+            "description": "Server-generated unique identifier for this authentication session"
+          },
+          "public_key": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Public Key",
+            "description": "WebAuthn authentication options for navigator.credentials.get()"
+          }
+        },
+        "type": "object",
+        "required": [
+          "authentication_id",
+          "public_key"
+        ],
+        "title": "AuthenticationInitiationResponse",
+        "description": "Response schema for WebAuthn authentication initiation."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "RegistrationCompletionRequest": {
+        "properties": {
+          "registration_id": {
+            "type": "string",
+            "title": "Registration Id",
+            "description": "The registration_id returned from initiation endpoint"
+          },
+          "credential": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credential",
+            "description": "Full attestation payload from navigator.credentials.create()"
+          }
+        },
+        "type": "object",
+        "required": [
+          "registration_id",
+          "credential"
+        ],
+        "title": "RegistrationCompletionRequest",
+        "description": "Request schema for WebAuthn registration completion."
+      },
+      "RegistrationCompletionResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "device_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Device Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "Bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "device_id",
+          "user_id"
+        ],
+        "title": "RegistrationCompletionResponse",
+        "description": "Response schema for WebAuthn registration completion."
+      },
+      "RegistrationInitiationRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "device_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Name",
+            "description": "User-friendly name for the device (e.g., 'iPhone', 'MacBook')"
+          },
+          "device_metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Metadata",
+            "description": "Optional device metadata (platform, browser, etc.)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "RegistrationInitiationRequest",
+        "description": "Request schema for WebAuthn registration initiation."
+      },
+      "RegistrationInitiationResponse": {
+        "properties": {
+          "registration_id": {
+            "type": "string",
+            "title": "Registration Id",
+            "description": "Server-generated unique identifier for this registration session"
+          },
+          "public_key": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Public Key",
+            "description": "WebAuthn registration options for navigator.credentials.create()"
+          }
+        },
+        "type": "object",
+        "required": [
+          "registration_id",
+          "public_key"
+        ],
+        "title": "RegistrationInitiationResponse",
+        "description": "Response schema for WebAuthn registration initiation."
+      },
+      "SessionListItem": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "last_activity_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Activity At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "device_id",
+          "issued_at",
+          "last_activity_at",
+          "expires_at",
+          "created_at"
+        ],
+        "title": "SessionListItem"
+      },
+      "SessionTokenPayload": {
+        "properties": {
+          "refresh_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "title": "SessionTokenPayload"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VaultCreateRequest": {
+        "properties": {
+          "service_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Service Name"
+          },
+          "login_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Login Name"
+          },
+          "password_blob": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Password Blob"
+          },
+          "notes_blob": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes Blob"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_name",
+          "login_name",
+          "password_blob"
+        ],
+        "title": "VaultCreateRequest"
+      },
+      "VaultItemResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "login_name": {
+            "type": "string",
+            "title": "Login Name"
+          },
+          "password_blob": {
+            "type": "string",
+            "title": "Password Blob"
+          },
+          "notes_blob": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes Blob"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "service_name",
+          "login_name",
+          "password_blob",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "VaultItemResponse"
+      },
+      "VaultUpdateRequest": {
+        "properties": {
+          "service_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Name"
+          },
+          "login_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Name"
+          },
+          "password_blob": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password Blob"
+          },
+          "notes_blob": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes Blob"
+          }
+        },
+        "type": "object",
+        "title": "VaultUpdateRequest"
+      }
+    }
+  }
+}

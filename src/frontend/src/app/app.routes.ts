@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginVerifyComponent } from './auth/login-verify.component';
-import { VaultComponent } from './vault.component';
+import { VaultComponent } from './vault/vault.component';
 
 export const appRoutes: Routes = [
   {

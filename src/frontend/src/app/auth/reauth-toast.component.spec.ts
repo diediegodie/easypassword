@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReauthToastComponent } from './reauth-toast.component';
 import { SessionState } from '../core/session.state';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('ReauthToastComponent', () => {
   let fixture: ComponentFixture<ReauthToastComponent>;
@@ -10,6 +11,7 @@ describe('ReauthToastComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ReauthToastComponent],
+      imports: [HttpClientTestingModule],
       providers: [SessionState],
     }).compileComponents();
 

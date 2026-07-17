@@ -1,40 +1,31 @@
-import { Injectable, computed, signal } from '@angular/core';
-
-export type ReauthReason = 'expired' | 'inactivity' | 'unknown';
-
-export interface ReauthMetadata {
-  reason: ReauthReason;
-  detail?: string;
-}
+import { Injectable, computed, WritableSignal } from '@angular/core';
+import { SessionService, ReauthMetadata, ReauthReason } from './session.service';
 
 @Injectable({ providedIn: 'root' })
 export class SessionState {
-  public sessionValid = signal(false);
-  public accessToken = signal<string | null>(null);
-  public reauthRequired = signal(false);
-  public reauthReason = signal<ReauthMetadata>({ reason: 'unknown' });
-  public vaultAccessBlocked = computed(() => !this.sessionValid() || this.reauthRequired());
+  public sessionValid: WritableSignal<boolean>;
+  public accessToken: WritableSignal<string | null>;
+  public reauthRequired: WritableSignal<boolean>;
+  public reauthReason: WritableSignal<ReauthMetadata>;
+  public vaultAccessBlocked: ReturnType<typeof computed>;
 
-  setSessionValid(value: boolean, token: string | null = null) {
-    this.sessionValid.set(value);
-    this.accessToken.set(value ? token : null);
-    if (value) {
-      this.reauthRequired.set(false);
-      this.reauthReason.set({ reason: 'unknown' });
-    }
+  constructor(private readonly sessionService: SessionService) {
+    this.sessionValid = this.sessionService.sessionValid;
+    this.accessToken = this.sessionService.accessToken;
+    this.reauthRequired = this.sessionService.reauthRequired;
+    this.reauthReason = this.sessionService.reauthReason;
+    this.vaultAccessBlocked = computed(() => !this.sessionValid() || this.reauthRequired());
+  }
+
+  setSessionValid(value: boolean, token: string | null = null): void {
+    this.sessionService.setSessionValid(token);
   }
 
   requireReauthentication(reason: ReauthReason, detail?: string) {
-    this.reauthReason.set({ reason, detail });
-    this.reauthRequired.set(true);
-    this.sessionValid.set(false);
-    this.accessToken.set(null);
+    this.sessionService.requireReauthentication(reason, detail);
   }
 
   clear() {
-    this.sessionValid.set(false);
-    this.accessToken.set(null);
-    this.reauthRequired.set(false);
-    this.reauthReason.set({ reason: 'unknown' });
+    this.sessionService.clear();
   }
 }
