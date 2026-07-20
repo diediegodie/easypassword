@@ -127,11 +127,6 @@ def test_settings(monkeypatch: pytest.MonkeyPatch) -> "Settings":
     return Settings()
 
 
-@pytest.fixture()
-def anyio_backend() -> str:
-    return "asyncio"
-
-
 @pytest_asyncio.fixture()
 async def app_client(async_engine: AsyncEngine) -> AsyncGenerator[TestClient, None]:
     from app.infra.database import get_db
@@ -186,7 +181,6 @@ async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, 
         finally:
             if session.in_transaction():
                 await session.rollback()
-            await session.close()
 
 
 @pytest_asyncio.fixture(scope="session")
