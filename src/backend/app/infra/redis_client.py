@@ -35,9 +35,7 @@ async def get_redis() -> AsyncGenerator[Redis, None]:
 
 async def set_challenge(challenge_id: str, challenge_bytes: bytes) -> None:
     key = WEBAUTHN_CHALLENGE_KEY.format(challenge_id)
-    ttl = (
-        settings.WEBAUTHN_CHALLENGE_TTL_SECONDS + settings.CLOCK_SKEW_TOLERANCE_SECONDS
-    )
+    ttl = settings.WEBAUTHN_CHALLENGE_TTL_SECONDS
     async with _redis_client_context() as client:
         await client.setex(
             key,
