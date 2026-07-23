@@ -19,6 +19,10 @@ lint.ignore = []
 line-length = 88
 target-version = "py312"
 
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's Depends() in argument defaults is the idiomatic pattern for DI
+"app/modules/vault/router.py" = ["B008"]
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 # Exclude integration tests by default; CI integration job should run them explicitly

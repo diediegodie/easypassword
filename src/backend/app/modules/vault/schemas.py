@@ -4,7 +4,6 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-
 SUSPICIOUS_KEY_NAMES = {
     "password",
     "secret",

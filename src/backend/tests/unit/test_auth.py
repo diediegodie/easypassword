@@ -7,17 +7,17 @@ from pathlib import Path
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from starlette.requests import Request
 from jose import jwt
+from starlette.requests import Request
 
 from app.core.config import settings
 from app.core.errors import ERR_INVALID_TOKEN, ERR_TOKEN_REVOKED, ERR_UNAUTHORIZED
-from app.core.middleware.auth import JWTAuthMiddleware, require_vault_scope
 from app.core.metrics import (
     vault_auth_token_expiry_failures_total,
-    vault_auth_token_validations_total,
     vault_auth_token_scope_failures_total,
+    vault_auth_token_validations_total,
 )
+from app.core.middleware.auth import JWTAuthMiddleware, require_vault_scope
 
 
 def _generate_rsa_keypair() -> tuple[str, str]:
@@ -44,7 +44,7 @@ def configure_test_settings(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> Generator[tuple[str, str], None, None]:
-    """Generate ephemeral RSA keys, write to temp files, and patch the settings singleton.
+    """Generate ephemeral RSA keys, write to temp files, patch settings.
 
     Yields (private_key_pem, public_key_pem) so tests can sign tokens.
     Keys are generated fresh each run — no secrets in any tracked file.

@@ -3,8 +3,6 @@ from __future__ import annotations
 import base64
 import hashlib
 
-from app.core.config import settings
-
 MIN_BLOB_LENGTH = 1 + 12 + 16
 MAX_BLOB_BYTES = 65_536
 SUPPORTED_BLOB_VERSION = 1

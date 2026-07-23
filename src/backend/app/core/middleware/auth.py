@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import logging
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
-import time
-import logging
 
 import httpx
 from fastapi import HTTPException, Request
@@ -13,14 +13,14 @@ from jose import ExpiredSignatureError, JWTError, jwt
 from app.core.config import settings
 from app.core.errors import ERR_INVALID_TOKEN, ERR_TOKEN_REVOKED, ERR_UNAUTHORIZED
 from app.core.metrics import (
-    vault_auth_token_expiry_failures_total,
-    vault_auth_token_scope_failures_total,
-    vault_auth_token_validations_total,
     vault_auth_revocation_checks_total,
     vault_auth_revocation_hits_total,
     vault_auth_revocation_misses_total,
+    vault_auth_token_expiry_failures_total,
+    vault_auth_token_scope_failures_total,
+    vault_auth_token_validations_total,
 )
-from app.infra.redis_client import get_redis
+from app.infra.redis_client import _redis_client_context
 
 security = HTTPBearer()
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class JWTAuthMiddleware:
         vault_auth_revocation_checks_total.inc()
 
         if settings.REVOCATION_LIST_BACKEND == "redis":
-            async with get_redis() as redis:
+            async with _redis_client_context() as redis:
                 if redis is None:
                     vault_auth_revocation_misses_total.inc()
                     return False
@@ -84,7 +84,7 @@ class JWTAuthMiddleware:
             )
         except HTTPException:
             vault_auth_token_validations_total.labels(status="failure").inc()
-            raise ERR_UNAUTHORIZED()
+            raise ERR_UNAUTHORIZED() from None
 
         if credentials is None:
             vault_auth_token_validations_total.labels(status="failure").inc()
@@ -102,7 +102,7 @@ class JWTAuthMiddleware:
                 raise JWTError("No algorithm specified in token header")
         except JWTError:
             vault_auth_token_validations_total.labels(status="failure").inc()
-            raise ERR_INVALID_TOKEN()
+            raise ERR_INVALID_TOKEN() from None
 
         try:
             payload = jwt.decode(
@@ -150,16 +150,16 @@ class JWTAuthMiddleware:
         except ExpiredSignatureError:
             vault_auth_token_validations_total.labels(status="failure").inc()
             vault_auth_token_expiry_failures_total.inc()
-            raise ERR_UNAUTHORIZED()
+            raise ERR_UNAUTHORIZED() from None
         except ERR_TOKEN_REVOKED:
             raise
         except JWTError:
             vault_auth_token_validations_total.labels(status="failure").inc()
-            raise ERR_INVALID_TOKEN()
+            raise ERR_INVALID_TOKEN() from None
         except Exception as exc:
             logger.error("Unexpected error during JWT validation: %s", exc)
             vault_auth_token_validations_total.labels(status="failure").inc()
-            raise ERR_INVALID_TOKEN()
+            raise ERR_INVALID_TOKEN() from None
 
 
 def require_vault_scope(required_scope: str):

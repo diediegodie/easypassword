@@ -7,13 +7,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.errors import AuthError, ReplayDetectedError, ValidationError
-from app.core.middleware.auth import require_vault_scope
 from app.core.config import settings
+from app.core.errors import ReplayDetectedError, ValidationError
+from app.core.middleware.auth import require_vault_scope
 from app.infra.database import get_db
 from app.infra.redis_client import add_replay_blob
 from app.modules.session.service import (
-    get_current_active_user_and_device,
     get_current_user_and_device,
 )
 from app.modules.vault.models import Vault

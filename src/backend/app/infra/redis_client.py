@@ -6,7 +6,11 @@ from contextlib import asynccontextmanager
 from redis.asyncio import Redis
 
 from app.core.config import settings
-from app.infra.redis_keys import DEVICE_REAUTH_REQUIRED_KEY, WEBAUTHN_CHALLENGE_KEY
+from app.infra.redis_keys import (
+    DEVICE_REAUTH_REQUIRED_KEY,
+    REPLAY_CACHE_KEY,
+    WEBAUTHN_CHALLENGE_KEY,
+)
 
 redis_client: Redis | None = None
 
@@ -28,8 +32,14 @@ async def _redis_client_context() -> AsyncGenerator[Redis, None]:
         await client.close()
 
 
-@asynccontextmanager
 async def get_redis() -> AsyncGenerator[Redis, None]:
+    """Plain async generator for use with FastAPI ``Depends()``.
+
+    Uses the internal ``_redis_client_context`` context manager to manage
+    the Redis connection lifecycle, but is *not* decorated with
+    ``@asynccontextmanager`` so that FastAPI can treat it as a regular
+    async generator dependency.
+    """
     async with _redis_client_context() as client:
         yield client
 
@@ -100,9 +110,6 @@ async def set_rate_limit(key: str, max_requests: int, window_seconds: int) -> bo
     if current is None:
         return False
     return int(current) <= max_requests
-
-
-from app.infra.redis_keys import REPLAY_CACHE_KEY
 
 
 async def add_replay_blob(user_id: str, blob_hash: str, ttl: int) -> bool:

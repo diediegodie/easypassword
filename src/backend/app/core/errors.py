@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -75,12 +75,6 @@ class PayloadTooLargeError(EasyPasswordError):
 
 class ReplayDetectedError(EasyPasswordError):
     status_code = 400
-
-
-from fastapi import FastAPI, Request, WebSocket
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 
 def request_validation_exception_handler(
