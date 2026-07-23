@@ -17,6 +17,10 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
+    JWT_PUBLIC_KEY: str = ""
+    REVOCATION_LIST_BACKEND: str = "redis"
+    INTROSPECTION_ENDPOINT: str = ""
+
     APP_ENV: str = "development"
     DEBUG: bool = False
     SECRET_KEY: str
@@ -31,6 +35,7 @@ class Settings(BaseSettings):
     WEBAUTHN_ORIGIN: str
     CLOCK_SKEW_TOLERANCE_SECONDS: int = 120
     INACTIVITY_TIMEOUT_SECONDS: int = 60
+    REPLAY_CACHE_TTL_SECONDS: int = 300
 
 
 if TYPE_CHECKING:

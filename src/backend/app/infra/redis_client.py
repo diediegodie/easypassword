@@ -28,6 +28,7 @@ async def _redis_client_context() -> AsyncGenerator[Redis, None]:
         await client.close()
 
 
+@asynccontextmanager
 async def get_redis() -> AsyncGenerator[Redis, None]:
     async with _redis_client_context() as client:
         yield client
@@ -99,3 +100,13 @@ async def set_rate_limit(key: str, max_requests: int, window_seconds: int) -> bo
     if current is None:
         return False
     return int(current) <= max_requests
+
+
+from app.infra.redis_keys import REPLAY_CACHE_KEY
+
+
+async def add_replay_blob(user_id: str, blob_hash: str, ttl: int) -> bool:
+    key = REPLAY_CACHE_KEY.format(user_id=user_id, blob_hash=blob_hash)
+    async with _redis_client_context() as client:
+        result = await client.set(key, b"1", nx=True, ex=ttl)
+    return result is True

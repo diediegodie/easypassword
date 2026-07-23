@@ -6,19 +6,7 @@
 
 **Purpose:** Provide a concise, unambiguous source of truth for implementers, QA, SRE, and auditors. All implementation artifacts (full code, tests, CI scripts, monitoring rules, playbooks, and test vectors) are referenced from this document and stored as companion files in the repository.
 
-## Acceptance Criteria (must be satisfied to close Phase 3.1)
-
-- API contract is formal and versioned with exact blob format, examples, and error codes.
-- Schemas validate base64 blobs, forbid extra fields, and return standardized errors.
-- Backend stores blobs as LargeBinary and never decrypts; rejects extra fields and suspicious key-like fields.
-- Frontend produces blobs in the specified format (AES‑GCM, IV unique per operation), never sends keys.
-- Tests include unit, integration, adversarial (fuzzing) coverage and public test vectors.
-- Size and rate limits are enforced client and server side.
-- Logging policy prevents any logging of blobs or keys; automated log scans verify compliance.
-- Migration and incident playbooks exist and are tested in staging.
-- Audit evidence (test artifacts, vectors, CI outputs, monitoring dashboards) is collected and indexed.
-
-## Canonical API Contract (normative)
+<!-- ## Canonical API Contract (normative)
 
 ### Blob format (canonical)
 
@@ -72,9 +60,9 @@ X-Vault-Blob-Version: 1
 - `ERR_BLOB_TOO_LARGE` - decoded blob exceeds hard limit (HTTP 413).
 - `ERR_UNSUPPORTED_BLOB_VERSION` - blob version not supported (HTTP 422).
 - `ERR_AAD_MISMATCH` - AAD authentication failed (HTTP 401).
-- `ERR_REPLAY_DETECTED` - duplicate blob detected within replay window (HTTP 400).
+- `ERR_REPLAY_DETECTED` - duplicate blob detected within replay window (HTTP 400). -->
 
-## Authentication and Authorization (normative)
+<!-- ## Authentication and Authorization (normative)
 
 ### Scope and Purpose
 **Scope:** Define the normative authentication and authorization requirements for all API operations to ensure that only authenticated and authorized users can access vault data.
@@ -118,7 +106,7 @@ X-Vault-Blob-Version: 1
 
 - **Alerts:**
   - Trigger when `auth_token_validations_total{status="failure"}` exceeds 10 failures/minute.
-  - Trigger when `auth_token_expiry_failures_total` exceeds 5 failures/minute.
+  - Trigger when `auth_token_expiry_failures_total` exceeds 5 failures/minute. -->
 
 ## Canonical Crypto Rules and Client Key Lifecycle
 
