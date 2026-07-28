@@ -52,9 +52,7 @@ def test_settings_requires_environment_variables(
         monkeypatch.delenv(key, raising=False)
 
     with pytest.raises(ValidationError):
-        # We pass _env_file=None to ensure pydantic-settings doesn't load a .env file
-        # that might exist in the environment, which would satisfy the validation
-        # even if we deleted the environment variables.
+
         Settings(_env_file=None)  # type: ignore
 
 

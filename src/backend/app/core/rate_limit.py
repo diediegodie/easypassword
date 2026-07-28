@@ -17,9 +17,7 @@ from app.modules.session.models import Session as SessionModel
 RATE_LIMIT_REQUESTS = 10
 RATE_LIMIT_WINDOW_SECONDS = 60
 SENSITIVE_PATH_PREFIXES = (
-    # Match any auth endpoints (register, login, etc.)
     "/api/v1/auth/",
-    # Match session-related endpoints (refresh, revoke, etc.)
     "/api/v1/session/",
 )
 

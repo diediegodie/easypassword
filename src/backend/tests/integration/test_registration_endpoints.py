@@ -33,7 +33,6 @@ class TestRegistrationEndpoints:
                 "device_name": "Test Device",
             },
         )
-        # Should not get 404
         assert response.status_code != 404
 
     def test_register_options_creates_user(self, client: TestClient) -> None:
@@ -47,11 +46,9 @@ class TestRegistrationEndpoints:
             },
         )
 
-        # Should be successful
         assert response.status_code == 200
         data = response.json()
 
-        # Verify response structure
         assert "registration_id" in data
         assert "public_key" in data
         assert "challenge" in data["public_key"]
@@ -88,7 +85,6 @@ class TestRegistrationEndpoints:
             json={"email": "existing@example.com"},
         )
 
-        # Should get 409 Conflict
         assert response.status_code == 409
 
     @pytest.mark.asyncio
@@ -106,7 +102,6 @@ class TestRegistrationEndpoints:
 
         assert response.status_code == 200
 
-        # User should be stored with normalized email
         result = await db_session.execute(
             select(User).where(User.email == "testuser@example.com")
         )
@@ -122,7 +117,6 @@ class TestRegistrationEndpoints:
                 "credential": {},
             },
         )
-        # Should not get 404
         assert response.status_code != 404
 
     def test_register_verify_rejects_missing_challenge(
@@ -137,13 +131,11 @@ class TestRegistrationEndpoints:
             },
         )
 
-        # Should get 401 Unauthorized
         assert response.status_code == 401
 
     def test_register_verify_full_flow(self, client: TestClient) -> None:
         """Test complete registration flow: options -> verify."""
 
-        # Step 1: Initiate registration
         options_response = client.post(
             "/api/v1/auth/register/options",
             json={
@@ -157,7 +149,6 @@ class TestRegistrationEndpoints:
         options_data = options_response.json()
         registration_id = options_data["registration_id"]
 
-        # Step 2: Mock credential and verify
         mock_credential = {
             "id": "credential-id",
             "response": {
@@ -186,20 +177,16 @@ class TestRegistrationEndpoints:
         assert verify_response.status_code == 200
         verify_data = verify_response.json()
 
-        # Verify response
         assert "access_token" in verify_data
         assert "device_id" in verify_data
         assert "user_id" in verify_data
         assert verify_data["token_type"] == "Bearer"
 
-        # Verify refresh token in cookie
         assert "refresh_token" in verify_response.cookies
 
-        # Verify session was created
         async def check_session():
             from sqlalchemy.ext.asyncio import AsyncSession
 
-            # Get a fresh db session
             db = AsyncSession()
             result = await db.execute(
                 select(Session).where(
@@ -211,11 +198,9 @@ class TestRegistrationEndpoints:
             assert session.device_id == uuid.UUID(verify_data["device_id"])
             await db.close()
 
-        # Note: In real integration test, this would need proper db context
-
     def test_register_verify_replay_protection(self, client: TestClient) -> None:
         """Test that challenge cannot be reused."""
-        # Initiate registration
+
         options_response = client.post(
             "/api/v1/auth/register/options",
             json={"email": "replay@example.com"},
@@ -225,7 +210,6 @@ class TestRegistrationEndpoints:
 
         mock_credential = {"id": "cred"}
 
-        # First attempt with mocked verification
         with patch(
             "app.modules.auth.service.verify_registration_response"
         ) as mock_verify:
@@ -245,7 +229,6 @@ class TestRegistrationEndpoints:
 
         assert response1.status_code == 200
 
-        # Second attempt with same registration_id should fail
         response2 = client.post(
             "/api/v1/auth/register/verify",
             json={
@@ -254,12 +237,11 @@ class TestRegistrationEndpoints:
             },
         )
 
-        # Should get 401 because challenge was already consumed
         assert response2.status_code == 401
 
     def test_register_verify_issues_session_tokens(self, client: TestClient) -> None:
         """Test that successful registration issues session tokens."""
-        # Initiate
+
         options_response = client.post(
             "/api/v1/auth/register/options",
             json={"email": "tokens@example.com", "device_name": "Token Test"},
@@ -287,14 +269,11 @@ class TestRegistrationEndpoints:
         assert verify_response.status_code == 200
         data = verify_response.json()
 
-        # Verify access token format (JWT)
         access_token = data["access_token"]
         assert len(access_token.split(".")) == 3  # JWT has 3 parts
 
-        # Verify refresh token cookie
         cookies = verify_response.cookies
         assert cookies.get("refresh_token") is not None
-        # In real environment, should be HttpOnly/Secure/SameSite
 
     def test_register_options_optional_fields(self, client: TestClient) -> None:
         """Test that device_name and device_metadata are optional."""

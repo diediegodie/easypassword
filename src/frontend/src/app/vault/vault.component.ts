@@ -1,6 +1,5 @@
-import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
-import { VaultItem, VaultService } from './vault.service';
+import { Component, OnInit } from '@angular/core';
+import { VaultItemPlaintext, VaultService } from './vault.service';
 import { SessionState } from '../core/session.state';
 
 @Component({
@@ -11,7 +10,7 @@ import { SessionState } from '../core/session.state';
       <p *ngIf="sessionState.vaultAccessBlocked()">Your vault is locked. Please reauthenticate.</p>
       <ng-container *ngIf="!sessionState.vaultAccessBlocked()">
         <p>Welcome back. Vault access is enabled.</p>
-        <div *ngIf="vaultItems$ | async as vaultItems">
+        <div *ngIf="vaultItems.length > 0 || loading === false">
           <h2>Your vault entries</h2>
           <ul>
             <li *ngFor="let item of vaultItems">
@@ -20,6 +19,7 @@ import { SessionState } from '../core/session.state';
           </ul>
           <p *ngIf="vaultItems.length === 0">No vault items found yet.</p>
         </div>
+        <p *ngIf="loadError">Failed to load vault items.</p>
       </ng-container>
     </section>
   `,
@@ -33,13 +33,27 @@ import { SessionState } from '../core/session.state';
     `,
   ],
 })
-export class VaultComponent {
-  public readonly vaultItems$: Observable<VaultItem[]>;
+export class VaultComponent implements OnInit {
+  public vaultItems: VaultItemPlaintext[] = [];
+  public loading = true;
+  public loadError = false;
 
   constructor(
     public readonly sessionState: SessionState,
     private readonly vaultService: VaultService,
-  ) {
-    this.vaultItems$ = this.vaultService.list();
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    if (this.sessionState.vaultAccessBlocked()) {
+      this.loading = false;
+      return;
+    }
+    try {
+      this.vaultItems = await this.vaultService.list();
+    } catch {
+      this.loadError = true;
+    } finally {
+      this.loading = false;
+    }
   }
 }

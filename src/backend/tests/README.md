@@ -7,7 +7,9 @@ This file describes how to run the backend test suite in all supported environme
 - Python 3.12
 - `venv` or a virtual environment activated
 - Dependencies installed in `src/backend` via `pip install -r requirements.txt`
-- If you will run integration tests, Docker Compose must be running for PostgreSQL and Redis
+- **Docker Compose** must be running for PostgreSQL and Redis when running integration tests (recommended for full coverage)
+
+> **Note:** Backend integration tests use **real Docker containers** for PostgreSQL and Redis. Unit tests run without external services. Always run with `RUN_INTEGRATION=1` for complete test coverage.
 
 ## 2. Running locally (host)
 

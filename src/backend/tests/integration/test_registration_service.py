@@ -32,7 +32,6 @@ async def test_registration_initiation_creates_user(db_session: AsyncSession) ->
         device_metadata={"platform": "test"},
     )
 
-    # Verify user was created
     from sqlalchemy import select
 
     result = await db_session.execute(select(User).where(User.email == email.lower()))
@@ -41,7 +40,6 @@ async def test_registration_initiation_creates_user(db_session: AsyncSession) ->
     assert user.email == email.lower()
     assert user.account_status == "active"
 
-    # Verify registration_id and public_key are returned
     assert registration_id
     assert isinstance(public_key, dict)
     assert "challenge" in public_key
@@ -62,7 +60,6 @@ async def test_registration_initiation_normalizes_email(
         email=email_mixed,
     )
 
-    # Verify email was normalized
     from sqlalchemy import select
 
     result = await db_session.execute(select(User).where(User.email == email_lower))
@@ -76,7 +73,7 @@ async def test_registration_initiation_rejects_existing_active_device(
     db_session: AsyncSession,
 ) -> None:
     """Test that initiation rejects if user already has an active device."""
-    # Create user with active device
+
     user = User(email="existing@example.com", account_status="active")
     db_session.add(user)
     await db_session.flush()
@@ -93,7 +90,6 @@ async def test_registration_initiation_rejects_existing_active_device(
     db_session.add(device)
     await db_session.commit()
 
-    # Attempt to initiate registration for same user
     with pytest.raises(ConflictError):
         await generate_registration_options_for_user(
             db=db_session,
@@ -112,11 +108,9 @@ async def test_registration_challenge_stored_in_redis(db_session: AsyncSession) 
         device_name="Redis Test",
     )
 
-    # Retrieve challenge from Redis
     challenge_data = await get_challenge(registration_id)
     assert challenge_data is not None
 
-    # Verify challenge structure
     challenge_payload = json.loads(challenge_data.decode())
     assert challenge_payload["purpose"] == "registration"
     assert challenge_payload["email"] == email.lower()
@@ -130,7 +124,7 @@ async def test_registration_completion_with_mock_credential(
     db_session: AsyncSession,
 ) -> None:
     """Test registration completion with mocked WebAuthn credential verification."""
-    # First, initiate registration
+
     email = "completion-test@example.com"
     registration_id, _ = await generate_registration_options_for_user(
         db=db_session,
@@ -138,7 +132,6 @@ async def test_registration_completion_with_mock_credential(
         device_name="Test Device",
     )
 
-    # Get user_id
     from sqlalchemy import select
 
     result = await db_session.execute(select(User).where(User.email == email.lower()))
@@ -146,7 +139,6 @@ async def test_registration_completion_with_mock_credential(
     assert user is not None
     user_id = user.id
 
-    # Mock credential payload
     mock_credential = {
         "id": "cred-id-123",
         "response": {
@@ -155,9 +147,8 @@ async def test_registration_completion_with_mock_credential(
         },
     }
 
-    # Mock the verify_registration_response function
     with patch("app.modules.auth.service.verify_registration_response") as mock_verify:
-        # Configure mock to return a successful verification result
+
         mock_verified = MagicMock()
         mock_verified.credential_id = "verified-cred-id"
         mock_verified.credential_public_key = b"verified-public-key"
@@ -173,7 +164,6 @@ async def test_registration_completion_with_mock_credential(
         assert user_id_result == user_id
         assert device_id is not None
 
-    # Verify device was persisted
     result = await db_session.execute(select(Device).where(Device.id == device_id))
     device = result.scalar_one_or_none()
     assert device is not None
@@ -192,11 +182,9 @@ async def test_registration_challenge_one_time_use(db_session: AsyncSession) -> 
         email=email,
     )
 
-    # Get challenge first time - should succeed
     challenge_data_1 = await get_challenge(registration_id)
     assert challenge_data_1 is not None
 
-    # Try to get challenge second time - should fail (already deleted)
     challenge_data_2 = await get_challenge(registration_id)
     assert challenge_data_2 is None
 
@@ -220,10 +208,9 @@ async def test_registration_rejects_challenge_purpose_mismatch(
     db_session: AsyncSession,
 ) -> None:
     """Test that verification rejects challenges with wrong purpose."""
-    # Create a challenge with wrong purpose
     registration_id = str(uuid.uuid4())
     challenge_payload = {
-        "purpose": "authentication",  # Wrong purpose
+        "purpose": "authentication",
         "challenge": "test-challenge",
         "rp_id": "localhost",
     }
@@ -244,7 +231,7 @@ async def test_registration_enforces_single_device_in_transaction(
     db_session: AsyncSession,
 ) -> None:
     """Test that single-device policy is enforced even with concurrent registrations."""
-    # Create user and register first device
+
     user = User(email="race@example.com", account_status="active")
     db_session.add(user)
     await db_session.flush()
@@ -261,7 +248,6 @@ async def test_registration_enforces_single_device_in_transaction(
     db_session.add(device1)
     await db_session.commit()
 
-    # Initiate second registration (should fail due to existing device)
     with pytest.raises(ConflictError, match="already has an active device"):
         await generate_registration_options_for_user(
             db=db_session,
@@ -287,7 +273,6 @@ async def test_registration_persists_device_metadata(db_session: AsyncSession) -
         device_metadata=device_metadata,
     )
 
-    # Mock and complete registration
     from sqlalchemy import select
 
     mock_credential = {"id": "cred", "response": {}}
@@ -305,7 +290,6 @@ async def test_registration_persists_device_metadata(db_session: AsyncSession) -
             credential=mock_credential,
         )
 
-    # Verify metadata was persisted
     result = await db_session.execute(select(Device).where(Device.id == device_id))
     device = result.scalar_one_or_none()
     assert device is not None
@@ -317,7 +301,6 @@ async def test_registration_rejects_duplicate_credential_id(
     db_session: AsyncSession,
 ) -> None:
     """Test that duplicate credential IDs are rejected."""
-    # Create user with existing credential
     user1 = User(email="user1@example.com", account_status="active")
     db_session.add(user1)
     await db_session.flush()
@@ -334,7 +317,6 @@ async def test_registration_rejects_duplicate_credential_id(
     db_session.add(device)
     await db_session.commit()
 
-    # Create second user and try to register with same credential_id
     user2 = User(email="user2@example.com", account_status="active")
     db_session.add(user2)
     await db_session.flush()
@@ -356,7 +338,7 @@ async def test_registration_rejects_duplicate_credential_id(
 
     with patch("app.modules.auth.service.verify_registration_response") as mock_verify:
         mock_verified = MagicMock()
-        mock_verified.credential_id = "duplicate-cred-id"  # Same as existing
+        mock_verified.credential_id = "duplicate-cred-id"
         mock_verified.credential_public_key = b"key-2"
         mock_verified.sign_count = 0
         mock_verify.return_value = mock_verified

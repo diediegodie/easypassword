@@ -11,7 +11,6 @@ from app.core.errors import AuthError
 from app.modules.auth.models import Device, User
 from app.modules.session.service import create_session, rotate_session
 
-# Use settings from app.core.config which handles environment variables
 TEST_DATABASE_URL = settings.DATABASE_URL
 
 
@@ -82,7 +81,6 @@ async def test_session_flow(db_session: AsyncSession):
         print("Token reuse detection verified (properly blocked and revoked)")
 
     # 5. Verify Revocation after Reuse
-    # The previous attempt should have revoked the session.
     try:
         await rotate_session(db_session, new_refresh_token)
         pytest.fail(

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Determine the project root (where .env is located)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 ENV_FILE = PROJECT_ROOT / ".env"
 

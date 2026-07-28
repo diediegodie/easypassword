@@ -77,6 +77,17 @@ class ReplayDetectedError(EasyPasswordError):
     status_code = 400
 
 
+class IVConflictError(EasyPasswordError):
+    """Raised when a duplicate IV is detected within the same user context."""
+
+    status_code = 400
+
+    def __init__(
+        self, detail: str = "Duplicate IV detected within user context"
+    ) -> None:
+        super().__init__(detail=detail, code="ERR_IV_CONFLICT")
+
+
 def request_validation_exception_handler(
     _: Request | WebSocket, exc: Exception
 ) -> JSONResponse:

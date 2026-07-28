@@ -38,3 +38,6 @@ class Vault(Base):
         server_default=sa.text("now()"),
         onupdate=sa.text("now()"),
     )
+    key_version: Mapped[int] = mapped_column(
+        sa.Integer(), nullable=False, server_default=sa.text("1")
+    )

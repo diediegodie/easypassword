@@ -5,7 +5,7 @@ Summary of validation steps performed:
 - Backend linters: `ruff check .` — All checks passed.
 - Backend formatting: `black --check .` — Passed.
 - Backend unit tests: `pytest -q src/backend/tests/unit` — 20 tests were skipped (environment-dependent).
-- OpenAPI spec: generated and saved to `docs/api-contracts-v1.json`.
+- OpenAPI spec: generated and saved to `src/backend/openapi/api-contracts-v1.json`.
 - Frontend lint/format: `npm run lint` and `prettier --write .` — Passed.
 - Frontend unit tests: `npm test` — All tests passed (14 tests).
 - Frontend audit: captured summary in `docs/npm-audit-frontend.json` (55 vulnerabilities; many fixes require major upgrades).

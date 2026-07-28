@@ -34,8 +34,8 @@ export class AuthService {
     return this.http.post<LoginVerifyResponse>('/api/v1/auth/login/verify', credential);
   }
 
-  handleSuccess(accessToken: string): void {
-    this.sessionState.setSessionValid(true, accessToken);
+  handleSuccess(accessToken: string, userId?: string, deviceId?: string): void {
+    this.sessionState.setSessionValid(true, accessToken, userId ?? null, deviceId ?? null);
   }
 
   logout(): void {

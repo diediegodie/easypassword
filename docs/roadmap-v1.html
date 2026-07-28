@@ -81,7 +81,7 @@
 </head>
 
 <body>
-    <div class="summary">📊 Progresso geral: 38/105 tasks concluídas (36.19%)</div>
+    <div class="summary">📊 Progresso geral: 61/105 tasks concluídas (58.10%)</div>
 
     <section class="phase" data-phase-id="rules">
         <h2>Execution Rules (Mandatory)</h2>
@@ -208,69 +208,70 @@
             switching is out of V1 scope. <span class="status status-done">DONE</span></div>
     </section>
 
-    <section class="phase" data-phase-id="3" data-phase-complete="0.00">
+    <section class="phase" data-phase-id="3" data-phase-complete="77.78">
         <h2>Phase 3 — Client-Side Encryption + API Contracts</h2>
-        <div class="phase-progress">Progresso: 0.00%</div>
+        <div class="phase-progress">Progresso: 77.78%</div>
 
         <h3>3.1 Encrypted data contract</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task1"> ⏳ Define vault payload
-            containing only encrypted blobs and allowed metadata. <span class="status status-pending">PENDING</span>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task1"> ✅ Define vault payload
+            containing only encrypted blobs and allowed metadata. <span class="status status-done">DONE</span>
         </div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task2"> ⏳ Ensure backend never
-            receives decryption key. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task3"> ⏳ Ensure backend does not
-            perform decryption in any flow. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task2"> ✅ Ensure backend never
+            receives decryption key. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task3"> ✅ Ensure backend does not
+            perform decryption in any flow. <span class="status status-done">DONE</span></div>
 
         <h3>3.2 Mandatory cryptographic rules</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task4"> ⏳ Implement AES-GCM on
-            the client for sensitive data. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task5"> ⏳ Generate unique IV per
-            operation with crypto.getRandomValues(). <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task6"> ⏳ Prevent IV reuse with
-            the same key. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task7"> ⏳ Validate Master Key
-            creation and usage flow only on the device. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task4"> ✅ Implement AES-GCM on
+            the client for sensitive data. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task5"> ✅ Generate unique IV per
+            operation with crypto.getRandomValues(). <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task6"> ✅ Prevent IV reuse with
+            the same key. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task7"> ✅ Validate Master Key
+            creation and usage flow only on the device. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase3-task8"> ✅ Document AAD canonicalization rules in the OpenAPI contract. <span class="status status-done">DONE</span></div>
 
         <h3>3.3 Cryptographic error handling</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task8"> ⏳ Display clear error
+        <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task8b"> ⏳ Display clear error
             when local key is unavailable. <span class="status status-pending">PENDING</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase3-task9"> ⏳ Securely invalidate
             session in case of critical integrity failure. <span class="status status-pending">PENDING</span></div>
     </section>
 
-    <section class="phase" data-phase-id="4" data-phase-complete="0.00">
+    <section class="phase" data-phase-id="4" data-phase-complete="60.00">
         <h2>Phase 4 — Frontend Angular (UI + State + Integration)</h2>
-        <div class="phase-progress">Progresso: 0.00%</div>
+        <div class="phase-progress">Progresso: 60.00%</div>
 
         <h3>4.1 Frontend foundation</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task1"> ⏳ Initialize Angular app
-            with feature-based architecture. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task2"> ⏳ Configure HttpClient as
-            the single communication layer. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task3"> ⏳ Configure Signals for
-            global/local state. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task4"> ⏳ Do not include Axios or
-            other HTTP stacks. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task1"> ✅ Initialize Angular app
+            with feature-based architecture. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task2"> ✅ Configure HttpClient as
+            the single communication layer. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task3"> ✅ Configure Signals for
+            global/local state. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task4"> ✅ Do not include Axios or
+            other HTTP stacks. <span class="status status-done">DONE</span></div>
 
         <h3>4.2 Authentication flows</h3>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task5"> ⏳ Implement WebAuthn
             access screen and registration flow. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task6"> ⏳ Implement recurring
-            login flow with passkeys. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task7"> ⏳ Implement session
-            expiration and transparent renewal. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task8"> ⏳ Implement inactivity
-            lock after 60 seconds. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task6"> ✅ Implement recurring
+            login flow with passkeys. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task7"> ✅ Implement session
+            expiration and transparent renewal. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task8"> ✅ Implement inactivity
+            lock after 60 seconds. <span class="status status-done">DONE</span></div>
 
         <h3>4.3 Vault flows</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task9"> ⏳ Implement vault item
-            listing. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task9"> ✅ Implement vault item
+            listing. <span class="status status-done">DONE</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task10"> ⏳ Implement creation,
             editing, and deletion of entries. <span class="status status-pending">PENDING</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task11"> ⏳ Implement quick
             password copy. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task12"> ⏳ Implement local
-            decryption only at the time of use. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase4-task12"> ✅ Implement local
+            decryption only at the time of use. <span class="status status-done">DONE</span></div>
 
         <h3>4.4 Connectivity rules</h3>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase4-task13"> ⏳ Block functional use
@@ -299,16 +300,17 @@
         <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task5"> ⏳ Validate main behavior
             on iPhone X. <span class="status status-pending">PENDING</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task6"> ⏳ Validate on iOS 16.7.x.
-            <span class="status status-pending">PENDING</span></div>
+            <span class="status status-pending">PENDING</span>
+        </div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task7"> ⏳ Validate on Safari iOS
             and standalone PWA mode. <span class="status status-pending">PENDING</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase5-task8"> ⏳ Record that other
             devices are outside V1 support commitment. <span class="status status-pending">PENDING</span></div>
     </section>
 
-    <section class="phase" data-phase-id="6" data-phase-complete="0.00">
+    <section class="phase" data-phase-id="6" data-phase-complete="45.45">
         <h2>Phase 6 — Security Hardening</h2>
-        <div class="phase-progress">Progresso: 0.00%</div>
+        <div class="phase-progress">Progresso: 45.45%</div>
 
         <h3>6.1 API and session</h3>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task1"> ⏳ Apply CSP as needed for
@@ -321,33 +323,33 @@
             external environments. <span class="status status-pending">PENDING</span></div>
 
         <h3>6.2 Observability and auditing</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task5"> ⏳ Log critical
-            authentication and session revocation events. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task6"> ⏳ Log WebAuthn failures
-            and refresh token reuse attempts. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase6-task5"> ✅ Log critical
+            authentication and session revocation events. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase6-task6"> ✅ Log WebAuthn failures
+            and refresh token reuse attempts. <span class="status status-done">DONE</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task7"> ⏳ Define minimum error
             and availability dashboard. <span class="status status-pending">PENDING</span></div>
 
         <h3>6.3 Security tests</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task8"> ⏳ Test challenge, access
-            token, and refresh token expiration. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task9"> ⏳ Test revocation by
-            reuse detection. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase6-task8"> ✅ Test challenge, access
+            token, and refresh token expiration. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase6-task9"> ✅ Test revocation by
+            reuse detection. <span class="status status-done">DONE</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task10"> ⏳ Test offline access
             attempts and validate blocking. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase6-task11"> ⏳ Test single-device
-            with second device attempt. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase6-task11"> ✅ Test single-device
+            with second device attempt. <span class="status status-done">DONE</span></div>
     </section>
 
-    <section class="phase" data-phase-id="7" data-phase-complete="0.00">
+    <section class="phase" data-phase-id="7" data-phase-complete="18.18">
         <h2>Phase 7 — CI/CD and Deployment (Render)</h2>
-        <div class="phase-progress">Progresso: 0.00%</div>
+        <div class="phase-progress">Progresso: 18.18%</div>
 
         <h3>7.1 CI Pipeline</h3>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task1"> ⏳ Run lint, tests, and
-            build on pull request. <span class="status status-pending">PENDING</span></div>
-        <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task2"> ⏳ Block merge with failed
-            pipeline. <span class="status status-pending">PENDING</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase7-task1"> ✅ Run lint, tests, and
+            build on pull request. <span class="status status-done">DONE</span></div>
+        <div class="task task-done" data-task-status="done" data-task-id="phase7-task2"> ✅ Block merge with failed
+            pipeline. <span class="status status-done">DONE</span></div>
         <div class="task task-pending" data-task-status="pending" data-task-id="phase7-task3"> ⏳ Publish build artifacts
             when applicable. <span class="status status-pending">PENDING</span></div>
 

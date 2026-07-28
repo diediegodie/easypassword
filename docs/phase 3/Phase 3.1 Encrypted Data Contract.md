@@ -1,12 +1,19 @@
 # Phase 3.1 Encrypted Data Contract
 
+> **Phase mapping:** This contract spans multiple roadmap phases. Each section is tagged with its owning phase:
+> - **[Phase 3]** — Client-Side Encryption + API Contracts (crypto rules, blob format, AAD, KDF, IV, replay cache, server responsibilities).
+> - **[Phase 4]** — Frontend Angular (client-side encryption responsibilities, UI integration).
+> - **[Phase 6]** — Security Hardening (monitoring, alerts, log retention, incident playbook, observability).
+>
+> Sections already completed are retained as `<!-- -->` comments and tagged with their phase for traceability.
+
 ## Scope and Purpose
 
 **Scope:** Define the normative, auditable contract and operational invariants required to implement Phase 3.1 - Encrypted Data Contract - so the system stores only encrypted blobs plus allowed plaintext metadata, the backend never receives decryption keys, and no backend flow performs decryption.
 
 **Purpose:** Provide a concise, unambiguous source of truth for implementers, QA, SRE, and auditors. All implementation artifacts (full code, tests, CI scripts, monitoring rules, playbooks, and test vectors) are referenced from this document and stored as companion files in the repository.
 
-<!-- ## Canonical API Contract (normative)
+<!-- ## Canonical API Contract (normative) [Phase 3 — completed]
 
 ### Blob format (canonical)
 
@@ -62,7 +69,7 @@ X-Vault-Blob-Version: 1
 - `ERR_AAD_MISMATCH` - AAD authentication failed (HTTP 401).
 - `ERR_REPLAY_DETECTED` - duplicate blob detected within replay window (HTTP 400). -->
 
-<!-- ## Authentication and Authorization (normative)
+<!-- ## Authentication and Authorization (normative) [Phase 1 + Phase 6 — completed]
 
 ### Scope and Purpose
 **Scope:** Define the normative authentication and authorization requirements for all API operations to ensure that only authenticated and authorized users can access vault data.
@@ -108,33 +115,33 @@ X-Vault-Blob-Version: 1
   - Trigger when `auth_token_validations_total{status="failure"}` exceeds 10 failures/minute.
   - Trigger when `auth_token_expiry_failures_total` exceeds 5 failures/minute. -->
 
-## Canonical Crypto Rules and Client Key Lifecycle
+<!-- ## Canonical Crypto Rules and Client Key Lifecycle [Phase 3] -->
 
-### Blob format and IV/tag
+<!-- ### Blob format and IV/tag [Phase 3]
 
 - **Version byte:** 1 (0x01) prefix.
 - **IV:** 12 bytes, unique per encryption operation.
 - **Tag:** 16 bytes (AES‑GCM).
-- **Encoding:** raw bytes concatenated as `[version][iv][ciphertext+tag]`, then base64 encoded.
+- **Encoding:** raw bytes concatenated as `[version][iv][ciphertext+tag]`, then base64 encoded. -->
 
-### AAD canonicalization (required)
+<!-- ### AAD canonicalization (required) [Phase 3]
 
 - **Field order:** `user_id`, `item_id`, `service_name` (exact order).
 - **Normalization:** apply Unicode NFC to each field.
 - **Separator:** ASCII Unit Separator `0x1F` between fields.
 - **Encoding:** UTF‑8 bytes of the concatenation.
-- **AAD example bytes:** `UTF8(user_id) + 0x1F + UTF8(item_id) + 0x1F + UTF8(service_name)`.
+- **AAD example bytes:** `UTF8(user_id) + 0x1F + UTF8(item_id) + 0x1F + UTF8(service_name)`. -->
 
-### KDF canonical parameters (authoritative)
+<!-- ### KDF canonical parameters (authoritative) [Phase 3]
 
 - **Primary:** PBKDF2‑HMAC‑SHA256.
 - **Salt length:** 16 bytes (random per user).
 - **Iterations:** 310,000.
 - **Output length:** 32 bytes (256 bits).
 - **Derived key usage:** derive AES‑GCM 256‑bit master key.
-- **Test vectors:** include at least one derived‑key vector (password + salt → derived key) in `/tests/vectors/`.
+- **Test vectors:** include at least one derived‑key vector (password + salt → derived key) in `/tests/vectors/`. -->
 
-### IV Generation Strategy
+### IV Generation Strategy [Phase 3]
 - **IV Requirements:**
   - **Uniqueness:** IVs **must** be unique per encryption operation.
   - **Generation:** IVs **must** be generated using a cryptographically secure pseudorandom number generator (CSPRNG).
@@ -147,7 +154,7 @@ X-Vault-Blob-Version: 1
 - **Monotonic counter:** In offline mode, clients **must** maintain a monotonic counter per device; the counter **must** be persisted securely and incremented for each encryption operation.
   - Derive a new master key **proactively** every 5 years or after regulatory changes.
 
-### Replay Protection Policy
+### Replay Protection Policy [Phase 3]
 
 - **Nonce or timestamp in AAD:** Clients **must** include a monotonically increasing nonce or Unix timestamp in the AAD to prevent replay attacks. The nonce **must** be unique per item per operation.
 - **Duplicate detection:** The backend **must** maintain a configurable replay cache (e.g., Redis) storing blob hashes observed within a configurable time window (default: 5 minutes).
@@ -160,44 +167,44 @@ X-Vault-Blob-Version: 1
 - **Monitoring:** The backend **must** expose metrics for replay cache hit rate, miss rate, and eviction count.
 - **Alerts:** Alert when replay cache hit rate exceeds 80% or eviction count exceeds 1000 per minute.
 
-### Client responsibilities
+### Client responsibilities [Phase 4]
 
 - Encrypt all sensitive fields client‑side using AES‑GCM with AAD as specified.
 - Never send decryption keys, raw key material, or key derivation secrets to the backend.
 - Enforce size limits pre‑upload and return `ERR_BLOB_TOO_LARGE` to the user if exceeded.
 - Store keys securely per platform (Keychain, Android Keystore, IndexedDB + WebCrypto best practices). See companion file `/docs/key_lifecycle.md`.
 
-### Server responsibilities
+### Server responsibilities [Phase 3]
 
 - Treat blobs as opaque: decode base64 only to store as LargeBinary; never attempt decryption.
 - Re‑encode stored bytes to base64 when returning to clients.
 - Reject payloads with extra fields (`extra="forbid"`) or suspicious key names.
 - Emit `blob_version_detected` and `migration_recommended` in responses.
 
-## Operational Invariants, Limits, Tests, and Monitoring
+## Operational Invariants, Limits, Tests, and Monitoring [Phase 3 + Phase 6]
 
-### Operational invariants (non‑negotiable)
+### Operational invariants (non‑negotiable) [Phase 3]
 
 - Backend never receives decryption keys.
 - Backend never performs decryption.
 - Only allowed metadata (`service_name`, `login_name`) may be stored in plaintext.
 - **Vault operations require an active backend connection; offline functional use is out of scope for Phase 3.1.**
 
-### Log Retention and Protection Policy
+### Log Retention and Protection Policy [Phase 6]
 
 - **Retention:** Application logs **must** be retained for a maximum of 90 days.
 - **Encryption:** Logs **must** be encrypted at rest using AES-256 or equivalent.
 - **Access:** Log access **must** be restricted to authorized personnel and audited quarterly.
 - **Blob Scanning:** Automated log scans **must** run in CI to detect and redact base64-like strings (e.g., `[A-Za-z0-9+/]{40,}={0,2}`).
 
-### Size and rate limits
+### Size and rate limits [Phase 3]
 
 - **Hard blob size limit:** 65,536 bytes (64 KB). Server returns `ERR_BLOB_TOO_LARGE` (HTTP 413).
 - **Recommended client target:** ≤ 16 KB.
 - **Alert threshold:** > 8 KB.
 - **Rate limits (examples):** `POST /vault` 20/min, `PUT /vault/{id}` 20/min, `GET /vault` 60/min, `GET /vault/{id}` 120/min.
 
-### Backup Restoration Checklist
+### Backup Restoration Checklist [Phase 6]
 
 - **Pre-Restore:**
   - Verify backup integrity using checksums or digital signatures.
@@ -207,7 +214,7 @@ X-Vault-Blob-Version: 1
   - Reject and quarantine invalid blobs for manual review.
   - Log restoration events for audit purposes.
 
-### Validation and tests (must exist)
+### Validation and tests (must exist) [Phase 3 + Phase 4]
 
 - **Schema tests:** `extra="forbid"`, base64 validation, `parse_blob_v1` checks.
 - **Backend tests:** store bytes unchanged, re‑encode symmetry, reject suspicious fields.
@@ -218,7 +225,7 @@ X-Vault-Blob-Version: 1
 - **Automated log scan:** CI job that searches application logs for base64‑like strings and fails if found. Example heuristic: search for `[A-Za-z0-9+/]{40,}={0,2}` excluding known test vectors.
 - **Backup verification:** CI script verifies backup encryption metadata and key separation (backup KMS key ≠ DB KMS key).
 
-### Performance Testing Requirements
+### Performance Testing Requirements [Phase 6]
 
 - **Load tests:** Mandatory load tests **must** exercise blob operations at sizes of 1 KB, 16 KB, and 64 KB under concurrent load simulating peak throughput.
 - **Stress tests:** Stress tests **must** push the system beyond rate limits to verify graceful degradation and error handling.
@@ -228,7 +235,7 @@ X-Vault-Blob-Version: 1
 - **Thresholds:** Latency **must** remain within SLA-defined limits (e.g., p99 < 500 ms for writes, p99 < 200 ms for reads) under normal load.
 - **CI integration:** Performance tests **must** run in CI on every pull request targeting main; regressions exceeding 20 % **must** block merge.
 
-### Monitoring and alerts (examples)
+### Monitoring and alerts (examples) [Phase 6]
 
 - **Alert: suspicious key fields spike - PromQL:**
 
@@ -272,7 +279,7 @@ X-Vault-Blob-Version: 1
   {job="app"} |= "ERR_INVALID_BLOB" | count_over_time({job="app"}[5m]) > 5
   ```
 
-### Key Observability (normative)
+### Key Observability (normative) [Phase 6]
 
 #### Scope and Purpose
 **Scope:** Define the normative observability requirements for key derivation and encryption operations to ensure operational visibility into cryptographic health.
@@ -296,9 +303,9 @@ X-Vault-Blob-Version: 1
 - **Logging:** Log key derivation failures with context (user_id, error_type, timestamp) but never log passwords, salts, or derived keys.
 - **Retention:** Key derivation metrics **must** be retained for a minimum of 90 days.
 
-## Migration, Incident Playbook, Audit Evidence, and Final Checklist
+## Migration, Incident Playbook, Audit Evidence, and Final Checklist [Phase 3 + Phase 6]
 
-### Migration signals and flow
+### Migration signals and flow [Phase 3]
 
 - **Response fields:** `blob_version_detected` (int), `migration_recommended` (bool).
 - **Migration helper API (spec):**
@@ -306,7 +313,7 @@ X-Vault-Blob-Version: 1
   - `PUT /vault/{id}` - client re‑encrypts and sets `needs_migration=false`. Audit event `vault.item.migrated`.
 - **Migration flow:** client detects `migration_recommended` → decrypts old blob locally → encrypts with new version → PUT updated blob.
 
-### Migration User Experience (normative)
+### Migration User Experience (normative) [Phase 3 + Phase 4]
 #### Scope and Purpose
 **Scope:** Define the normative requirements for migration user experience, including backend fields, error handling, and monitoring metrics for migration operations.
 **Purpose:** Ensure users receive clear guidance during migration and that migration operations are observable and auditable.
@@ -328,14 +335,14 @@ X-Vault-Blob-Version: 1
 sum(rate(vault_migrations_total{status="failure"}[5m])) > 5
 ```
 
-### Deprecation Policy
+### Deprecation Policy [Phase 3]
 
 - **Support window:** Older blob versions **must** remain fully supported for a minimum of 18 months after the release of a new version.
 - **Mandatory migration:** After the 18‑month window, migration becomes mandatory. The backend **must** reject blobs using deprecated versions, returning `ERR_UNSUPPORTED_BLOB_VERSION` (HTTP 422).
 - **Advance notice:** At least 90 days before the deprecation deadline, the backend **must** emit `migration_recommended: true` on all affected items and clients **must** surface a migration prompt to users.
 - **Exception handling:** Clients that fail to migrate within the window **must** be blocked from writing until they upgrade; reads of deprecated blobs **may** remain permitted for a grace period of up to 30 days after the deadline.
 
-### Key compromise playbook (summary)
+### Key compromise playbook (summary) [Phase 6]
 
 1. **Detect** - *Incident Commander* authorizes alert response; *Security Engineer* analyzes alerts and identifies scope.
 2. **Contain** - *Security Engineer* marks affected items `needs_migration` and tightens rate limits; *QA Auditor* validates containment measures.
@@ -343,7 +350,7 @@ sum(rate(vault_migrations_total{status="failure"}[5m])) > 5
 4. **Re‑encrypt** - clients re‑encrypt items client‑side and clear `needs_migration`; *QA Auditor* verifies completion.
 5. **Post‑incident** - *Security Engineer* rotates keys and audits logs; *Communications Lead* drafts and publishes user notifications; *Incident Commander* approves return to service and authorizes public statements.
 
-### Incident Governance Roles
+### Incident Governance Roles [Phase 6]
 
 - **Incident Commander:** Owns the incident response process; coordinates all roles, declares severity, and authorizes communications.
 - **Security Engineer:** Investigates root cause, identifies affected items, prescribes remediation steps, and validates key rotation.
@@ -357,9 +364,9 @@ sum(rate(vault_migrations_total{status="failure"}[5m])) > 5
 | QA Auditor | - | Validates containment measures | Runs post‑remediation test suite, signs off | - |
 | Communications Lead | - | - | - | Drafts and publishes user notifications |
 
-### Audit evidence index (must be produced)
+### Audit evidence index (must be produced) [Phase 6]
 
-- `docs/api-contracts-v1.json` - canonical contract.
+- `src/backend/openapi/api-contracts-v1.json` - canonical contract.
 - `docs/phase3_acceptance_checklist.md` - one‑page checklist.
 - `tests/vectors/` - canonical test vectors (JS/Python/Kotlin/Swift).
 - `utils/encoding.py` - canonical parse/build functions.
@@ -368,7 +375,7 @@ sum(rate(vault_migrations_total{status="failure"}[5m])) > 5
 - `ops/playbooks/key_compromise.md` - full incident playbook.
 - `audit/` - test run artifacts, verification logs, and mapping file → change → reason.
 
-### Cross-Platform Test Vector Guarantee
+### Cross-Platform Test Vector Guarantee [Phase 3]
 - **Test Vectors:**
   - **Scope:** Include at least one public, interoperable test vector for each supported platform (JS, Python, Kotlin, Swift).
   - **Validation:** Vectors **must** validate:
@@ -379,9 +386,9 @@ sum(rate(vault_migrations_total{status="failure"}[5m])) > 5
   - **Storage:** Vectors **must** be stored in `/tests/vectors/` with platform-specific subdirectories.
   - **CI:** Vectors **must** be exercised in CI on every pull request to ensure cross-platform consistency; a CI failure **must** block merge.
 
-## Where to find companion artifacts (recommended repo layout)
+## Where to find companion artifacts (recommended repo layout) [Phase 3 + Phase 6]
 
-- `docs/api-contracts-v1.json` - canonical contract (machine‑readable).
+- `src/backend/openapi/api-contracts-v1.json` - canonical contract (machine‑readable).
 - `docs/phase3_acceptance_checklist.md` - one‑page checklist.
 - `docs/key_lifecycle.md` - key derivation and storage guidance.
 - `tests/vectors/` - test vectors and verification scripts.
@@ -391,26 +398,25 @@ sum(rate(vault_migrations_total{status="failure"}[5m])) > 5
 - `ops/playbooks/key_compromise.md` - incident playbook.
 - `audit/` - test run artifacts and mapping file → change → reason.
 
-# Final Acceptance Checklist → Phase 3.1 Contract Mapping
+# Final Acceptance Checklist → Phase 3.1 Contract Mapping [Phase 3 + Phase 4 + Phase 6]
 
-| Checklist Item | Corresponding Section in Phase 3.1 Contract |
-|---|---|
-| `api-contracts-v1.json` contains blob_v1, AAD canonicalization, KDF params, error catalog, and versioning policy | Canonical API Contract → Blob format, AAD canonicalization, KDF parameters, Error catalog, Versioning Policy |
-| Schemas use `extra="forbid"` and validators for base64 and blob format | Canonical API Contract → Schemas validate base64 blobs, forbid extra fields |
-| Authentication & Authorization middleware enforces auth on all vault endpoints; tokens validated per spec | Authentication and Authorization → Middleware enforcement, token validation |
-| Backend stores LargeBinary and never decrypts; no `.encode("utf-8")`/`.decode("utf-8")` remains in vault paths | Operational Invariants → Backend never decrypts; Server Responsibilities → Treat blobs as opaque |
-| Middleware rejects suspicious key fields and unexpected large base64 fields | Server Responsibilities → Reject payloads with extra fields or suspicious key names |
-| Frontend encryption implements AES‑GCM blob_v1 with AAD canonicalization and KDF parameters | Client Responsibilities → Encrypt client-side using AES‑GCM with AAD and KDF parameters |
-| Client enforces pre‑upload size checks and returns `ERR_BLOB_TOO_LARGE` | Client Responsibilities → Enforce size limits pre-upload; Operational Invariants → Size and rate limits |
-| Offline/Sync rules enforced: IV generation uses deterministic salt + counter; conflict resolution via server-wins timestamp | Crypto Rules → IV Generation Strategy; Offline/Sync rules |
-| Unit, integration, adversarial, fuzz, and E2E tests pass | Validation and Tests → Unit, Integration, Adversarial, Fuzzing, E2E tests |
-| Automated log scan and backup verification CI checks pass | Log Retention and Protection Policy → Automated log scans; Backup Restoration Checklist → Verification scripts |
-| Monitoring alerts are implemented and tested | Monitoring and Alerts → PromQL and Loki rules |
-| Key observability metrics emitted: derivation latency, error rates, per-user counters; dashboards and alerts configured | Monitoring and Alerts → Key Observability |
-| Migration helper API and incident playbook are documented and exercised in staging | Migration, Incident Playbook → Migration flow & Key compromise playbook |
-| Migration UX enforced: `migration_deadline`, `migration_message` fields returned; `ERR_MIGRATION_REQUIRED` (409) after deadline; migration prompt surfaced to user | Migration signals and flow → Migration User Experience |
-| Audit package with test artifacts and mapping document is assembled | Audit Evidence Index → `docs/`, `tests/`, `utils/`, `ops/`, `audit/` |
-| Deprecation enforcement verified (`ERR_UNSUPPORTED_BLOB_VERSION` returned after deadline; `ERR_REPLAY_DETECTED` returned for duplicate blobs) | Deprecation Policy → Mandatory migration; Replay Protection Policy → Rejection |
-| Replay cache tested: duplicate blob submissions return `ERR_REPLAY_DETECTED` (HTTP 400) | Replay Protection Policy → Duplicate detection and rejection |
-| Replay cache scales horizontally: Redis-backed with TTL; horizontal scaling tested under load | Replay Protection Policy → Replay Cache Scalability |
-| Cross‑platform test vectors (JS, Python, Kotlin, Swift) validated in CI | Cross‑Platform Test Vector Guarantee → CI integration |
+| Checklist Item | Corresponding Section in Phase 3.1 Contract | Roadmap Phase |---|
+| `src/backend/openapi/api-contracts-v1.json` contains blob_v1, AAD canonicalization, KDF params, error catalog, and versioning policy | Canonical API Contract → Blob format, AAD canonicalization, KDF parameters, Error catalog, Versioning Policy | Phase 3 |
+| Schemas use `extra="forbid"` and validators for base64 and blob format | Canonical API Contract → Schemas validate base64 blobs, forbid extra fields | Phase 3 |
+| Authentication & Authorization middleware enforces auth on all vault endpoints; tokens validated per spec | Authentication and Authorization → Middleware enforcement, token validation | Phase 1 + Phase 6 |
+| Backend stores LargeBinary and never decrypts; no `.encode("utf-8")`/`.decode("utf-8")` remains in vault paths | Operational Invariants → Backend never decrypts; Server Responsibilities → Treat blobs as opaque | Phase 3 |
+| Middleware rejects suspicious key fields and unexpected large base64 fields | Server Responsibilities → Reject payloads with extra fields or suspicious key names | Phase 3 |
+| Frontend encryption implements AES‑GCM blob_v1 with AAD canonicalization and KDF parameters | Client Responsibilities → Encrypt client-side using AES‑GCM with AAD and KDF parameters | Phase 4 |
+| Client enforces pre‑upload size checks and returns `ERR_BLOB_TOO_LARGE` | Client Responsibilities → Enforce size limits pre-upload; Operational Invariants → Size and rate limits | Phase 4 |
+| Offline/Sync rules enforced: IV generation uses deterministic salt + counter; conflict resolution via server-wins timestamp | Crypto Rules → IV Generation Strategy; Offline/Sync rules | Phase 3 |
+| Unit, integration, adversarial, fuzz, and E2E tests pass | Validation and Tests → Unit, Integration, Adversarial, Fuzzing, E2E tests | Phase 3 + Phase 4 |
+| Automated log scan and backup verification CI checks pass | Log Retention and Protection Policy → Automated log scans; Backup Restoration Checklist → Verification scripts | Phase 6 |
+| Monitoring alerts are implemented and tested | Monitoring and Alerts → PromQL and Loki rules | Phase 6 |
+| Key observability metrics emitted: derivation latency, error rates, per-user counters; dashboards and alerts configured | Monitoring and Alerts → Key Observability | Phase 6 |
+| Migration helper API and incident playbook are documented and exercised in staging | Migration, Incident Playbook → Migration flow & Key compromise playbook | Phase 3 + Phase 6 |
+| Migration UX enforced: `migration_deadline`, `migration_message` fields returned; `ERR_MIGRATION_REQUIRED` (409) after deadline; migration prompt surfaced to user | Migration signals and flow → Migration User Experience | Phase 3 + Phase 4 |
+| Audit package with test artifacts and mapping document is assembled | Audit Evidence Index → `docs/`, `tests/`, `utils/`, `ops/`, `audit/` | Phase 6 |
+| Deprecation enforcement verified (`ERR_UNSUPPORTED_BLOB_VERSION` returned after deadline; `ERR_REPLAY_DETECTED` returned for duplicate blobs) | Deprecation Policy → Mandatory migration; Replay Protection Policy → Rejection | Phase 3 |
+| Replay cache tested: duplicate blob submissions return `ERR_REPLAY_DETECTED` (HTTP 400) | Replay Protection Policy → Duplicate detection and rejection | Phase 3 |
+| Replay cache scales horizontally: Redis-backed with TTL; horizontal scaling tested under load | Replay Protection Policy → Replay Cache Scalability | Phase 3 |
+| Cross‑platform test vectors (JS, Python, Kotlin, Swift) validated in CI | Cross-Platform Test Vector Guarantee → CI integration | Phase 3 |

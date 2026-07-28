@@ -509,9 +509,12 @@
             "description": "Authentication failed or reauthentication required.",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
-                  "detail": "Reauthentication required",
-                  "code": "ReauthenticationRequired"
+                  "code": "ReauthenticationRequired",
+                  "message": "Reauthentication required"
                 }
               }
             }
@@ -549,19 +552,65 @@
             "description": "Authentication failed or reauthentication required.",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
-                  "detail": "Reauthentication required",
-                  "code": "ReauthenticationRequired"
+                  "code": "ReauthenticationRequired",
+                  "message": "Reauthentication required"
                 }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Validation Error - request violated the Phase 3.1 contract (e.g., extra fields, suspicious key names, invalid blob, blob too large, unsupported blob version).",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "extraFields": {
+                    "summary": "Extra fields rejected",
+                    "value": {
+                      "code": "ERR_EXTRA_FIELDS",
+                      "message": "Unknown fields are not allowed",
+                      "details": {
+                        "fields": ["plaintext_password"]
+                      }
+                    }
+                  },
+                  "suspiciousKey": {
+                    "summary": "Plaintext-looking field rejected",
+                    "value": {
+                      "code": "ERR_SUSPICIOUS_KEY",
+                      "message": "Field name suggests plaintext credential; client-side encryption required",
+                      "details": {
+                        "field": "password"
+                      }
+                    }
+                  },
+                  "invalidBlob": {
+                    "summary": "Invalid blob format",
+                    "value": {
+                      "code": "ERR_INVALID_BLOB",
+                      "message": "Blob is not valid base64 or does not match the expected layout"
+                    }
+                  },
+                  "blobTooLarge": {
+                    "summary": "Blob exceeds size limit",
+                    "value": {
+                      "code": "ERR_BLOB_TOO_LARGE",
+                      "message": "Blob exceeds the maximum allowed size of 1048576 bytes"
+                    }
+                  },
+                  "unsupportedVersion": {
+                    "summary": "Unsupported blob version",
+                    "value": {
+                      "code": "ERR_UNSUPPORTED_BLOB_VERSION",
+                      "message": "Blob version 2 is not supported by this server"
+                    }
+                  }
                 }
               }
             }
@@ -612,19 +661,65 @@
             "description": "Authentication failed or reauthentication required.",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
-                  "detail": "Reauthentication required",
-                  "code": "ReauthenticationRequired"
+                  "code": "ReauthenticationRequired",
+                  "message": "Reauthentication required"
                 }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Validation Error - request violated the Phase 3.1 contract (e.g., extra fields, suspicious key names, invalid blob, blob too large, unsupported blob version).",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "extraFields": {
+                    "summary": "Extra fields rejected",
+                    "value": {
+                      "code": "ERR_EXTRA_FIELDS",
+                      "message": "Unknown fields are not allowed",
+                      "details": {
+                        "fields": ["plaintext_password"]
+                      }
+                    }
+                  },
+                  "suspiciousKey": {
+                    "summary": "Plaintext-looking field rejected",
+                    "value": {
+                      "code": "ERR_SUSPICIOUS_KEY",
+                      "message": "Field name suggests plaintext credential; client-side encryption required",
+                      "details": {
+                        "field": "password"
+                      }
+                    }
+                  },
+                  "invalidBlob": {
+                    "summary": "Invalid blob format",
+                    "value": {
+                      "code": "ERR_INVALID_BLOB",
+                      "message": "Blob is not valid base64 or does not match the expected layout"
+                    }
+                  },
+                  "blobTooLarge": {
+                    "summary": "Blob exceeds size limit",
+                    "value": {
+                      "code": "ERR_BLOB_TOO_LARGE",
+                      "message": "Blob exceeds the maximum allowed size of 1048576 bytes"
+                    }
+                  },
+                  "unsupportedVersion": {
+                    "summary": "Unsupported blob version",
+                    "value": {
+                      "code": "ERR_UNSUPPORTED_BLOB_VERSION",
+                      "message": "Blob version 2 is not supported by this server"
+                    }
+                  }
                 }
               }
             }
@@ -667,9 +762,12 @@
             "description": "Authentication failed or reauthentication required.",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
-                  "detail": "Reauthentication required",
-                  "code": "ReauthenticationRequired"
+                  "code": "ReauthenticationRequired",
+                  "message": "Reauthentication required"
                 }
               }
             }
@@ -679,7 +777,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1068,29 +1166,38 @@
             "title": "Login Name"
           },
           "password_blob": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Password Blob"
+            "$ref": "#/components/schemas/BlobV1",
+            "description": "Client-encrypted password blob (base64-encoded [version][iv][ciphertext+tag])."
           },
           "notes_blob": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/BlobV1"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Notes Blob"
+            "description": "Optional client-encrypted notes blob (base64-encoded [version][iv][ciphertext+tag])."
+          },
+          "key_version": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "title": "Key Version",
+            "description": "Version of the client-side key used to encrypt the blobs. Used for future key rotation."
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "required": [
           "service_name",
           "login_name",
-          "password_blob"
+          "password_blob",
+          "key_version"
         ],
-        "title": "VaultCreateRequest"
+        "title": "VaultCreateRequest",
+        "description": "Request schema for creating a vault item. All blobs MUST be client-side encrypted before submission (Phase 3.1 contract). For AES-GCM, the cryptographic contract uses Additional Authenticated Data (AAD) built as UTF8(NFC(user_id)) + 0x1F + UTF8(NFC(item_id)) + 0x1F + UTF8(NFC(service_name)) in the exact field order user_id, item_id, service_name. AAD is part of the encryption contract and is not exposed as a direct API field."
       },
       "VaultItemResponse": {
         "properties": {
@@ -1107,19 +1214,19 @@
             "title": "Login Name"
           },
           "password_blob": {
-            "type": "string",
-            "title": "Password Blob"
+            "$ref": "#/components/schemas/BlobV1",
+            "description": "Client-encrypted password blob (base64-encoded [version][iv][ciphertext+tag])."
           },
           "notes_blob": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/BlobV1"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Notes Blob"
+            "description": "Optional client-encrypted notes blob (base64-encoded [version][iv][ciphertext+tag])."
           },
           "created_at": {
             "type": "string",
@@ -1130,6 +1237,26 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "blob_version_detected": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "title": "Blob Version Detected",
+            "description": "Version of the blob format detected by the server. Used to flag items that may need migration."
+          },
+          "migration_recommended": {
+            "type": "boolean",
+            "default": false,
+            "title": "Migration Recommended",
+            "description": "True when the server detects the blob uses a deprecated version and the client should re-encrypt with the current version."
+          },
+          "key_version": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "title": "Key Version",
+            "description": "Version of the client-side key used to encrypt the blobs."
           }
         },
         "type": "object",
@@ -1139,9 +1266,13 @@
           "login_name",
           "password_blob",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "blob_version_detected",
+          "migration_recommended",
+          "key_version"
         ],
-        "title": "VaultItemResponse"
+        "title": "VaultItemResponse",
+        "description": "Response schema for a vault item. Blobs are returned as opaque ciphertext; the server never decrypts them. AES-GCM encryption uses Additional Authenticated Data (AAD) built as UTF8(NFC(user_id)) + 0x1F + UTF8(NFC(item_id)) + 0x1F + UTF8(NFC(service_name)) in the exact field order user_id, item_id, service_name. AAD is documented as part of the cryptographic contract and is not returned as a separate API field."
       },
       "VaultUpdateRequest": {
         "properties": {
@@ -1174,29 +1305,136 @@
           "password_blob": {
             "anyOf": [
               {
-                "type": "string",
-                "minLength": 1
+                "$ref": "#/components/schemas/BlobV1"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Password Blob"
+            "description": "Client-encrypted password blob (base64-encoded [version][iv][ciphertext+tag])."
           },
           "notes_blob": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/BlobV1"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Notes Blob"
+            "description": "Optional client-encrypted notes blob (base64-encoded [version][iv][ciphertext+tag])."
+          },
+          "key_version": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "title": "Key Version",
+            "description": "Version of the client-side key used to encrypt the blobs."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "VaultUpdateRequest",
+        "description": "Request schema for updating a vault item. All blobs MUST be client-side encrypted before submission (Phase 3.1 contract). For AES-GCM, the cryptographic contract uses Additional Authenticated Data (AAD) built as UTF8(NFC(user_id)) + 0x1F + UTF8(NFC(item_id)) + 0x1F + UTF8(NFC(service_name)) in the exact field order user_id, item_id, service_name. AAD is part of the encryption contract and is not exposed as a direct API field."
+      },
+      "BlobV1": {
+        "type": "string",
+        "format": "byte",
+        "minLength": 1,
+        "maxLength": 1048576,
+        "pattern": "^[A-Za-z0-9+/]+={0,2}$",
+        "title": "BlobV1",
+        "description": "Opaque client-encrypted blob (base64). Layout: [1-byte version][12-byte IV][ciphertext+16-byte GCM tag]. AES-GCM uses Additional Authenticated Data (AAD) built as UTF8(NFC(user_id)) + 0x1F + UTF8(NFC(item_id)) + 0x1F + UTF8(NFC(service_name)) in the exact field order user_id, item_id, service_name. Example: AAD = UTF8(NFC('user')) + 0x1F + UTF8(NFC('item')) + 0x1F + UTF8(NFC('service')). The server treats this as opaque bytes and never decrypts it."
+      },
+      "ErrorResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Canonical error code from the Phase 3.1 contract error catalog."
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable error message. Safe to display to end users."
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "description": "Optional structured details (e.g., offending field names, expected vs actual values)."
           }
         },
         "type": "object",
-        "title": "VaultUpdateRequest"
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorResponse",
+        "description": "Canonical error envelope used by all vault endpoints. See Phase 3.1 contract for the full error catalog."
+      },
+      "ErrorCatalog": {
+        "type": "object",
+        "title": "ErrorCatalog",
+        "description": "Canonical error codes defined by the Phase 3.1 contract. Clients SHOULD switch on `code` rather than parsing `message`.",
+        "properties": {
+          "ERR_INVALID_BLOB": {
+            "type": "string",
+            "enum": [
+              "ERR_INVALID_BLOB"
+            ],
+            "description": "Blob is not valid base64 or does not match the expected layout."
+          },
+          "ERR_EXTRA_FIELDS": {
+            "type": "string",
+            "enum": [
+              "ERR_EXTRA_FIELDS"
+            ],
+            "description": "Request contained unknown fields. The server rejects extra fields to prevent accidental leakage of plaintext secrets."
+          },
+          "ERR_SUSPICIOUS_KEY": {
+            "type": "string",
+            "enum": [
+              "ERR_SUSPICIOUS_KEY"
+            ],
+            "description": "A field name suggests the client is sending plaintext credentials (e.g., 'password', 'secret', 'private_key'). The server rejects these to enforce client-side encryption."
+          },
+          "ERR_BLOB_TOO_LARGE": {
+            "type": "string",
+            "enum": [
+              "ERR_BLOB_TOO_LARGE"
+            ],
+            "description": "Blob exceeds the maximum allowed size (1 MiB by default)."
+          },
+          "ERR_UNSUPPORTED_BLOB_VERSION": {
+            "type": "string",
+            "enum": [
+              "ERR_UNSUPPORTED_BLOB_VERSION"
+            ],
+            "description": "Blob version byte is not supported by the current server."
+          },
+          "ERR_AAD_MISMATCH": {
+            "type": "string",
+            "enum": [
+              "ERR_AAD_MISMATCH"
+            ],
+            "description": "Additional Authenticated Data (AAD) does not match the expected context (e.g., vault item id)."
+          },
+          "ERR_REPLAY_DETECTED": {
+            "type": "string",
+            "enum": [
+              "ERR_REPLAY_DETECTED"
+            ],
+            "description": "A nonce/IV reuse was detected; the request is rejected to prevent cryptographic compromise."
+          }
+        }
       }
     }
   }

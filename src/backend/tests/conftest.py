@@ -35,7 +35,7 @@ def is_postgres_ready():
                 "TEST_DATABASE_URL",
                 os.getenv(
                     "DATABASE_URL",
-                    "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db",
+                    "postgresql+asyncpg://easypassword_user:dev_password@localhost:5432/easypassword",
                 ),
             )
         )
@@ -206,15 +206,11 @@ async def configure_test_database() -> AsyncGenerator[None, None]:
         await engine.dispose()
 
 
-# Provide a lightweight in-process async fake Redis for local, Docker-free
-# integration test runs. When `RUN_INTEGRATION` is set (CI integration job),
-# the fixture does nothing and tests use the real Redis service.
 class AsyncFakeRedis:
     def __init__(self) -> None:
         self._store: dict[str, dict] = {}
 
     async def execute_command(self, *args, **kwargs):
-        # Expecting: ("EVAL", script, numkeys, key, window_seconds)
         try:
             if args and args[0] == "EVAL":
                 key = args[3]
@@ -289,7 +285,6 @@ async def fake_redis(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyP
     try:
         yield fake
     finally:
-        # synchronous cleanup: clear the in-memory store
         fake._store.clear()
 
 

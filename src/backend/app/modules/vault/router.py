@@ -8,10 +8,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.errors import ReplayDetectedError, ValidationError
+from app.core.errors import IVConflictError, ReplayDetectedError, ValidationError
 from app.core.middleware.auth import require_vault_scope
 from app.infra.database import get_db
-from app.infra.redis_client import add_replay_blob
+from app.infra.redis_client import add_replay_blob, check_iv_duplicate
 from app.modules.session.service import (
     get_current_user_and_device,
 )
@@ -21,7 +21,12 @@ from app.modules.vault.schemas import (
     VaultItemResponse,
     VaultUpdateRequest,
 )
-from app.modules.vault.utils import format_blob_v1, hash_blob, parse_blob_v1
+from app.modules.vault.utils import (
+    SUPPORTED_BLOB_VERSION,
+    format_blob_v1,
+    hash_blob,
+    parse_blob_v1,
+)
 
 router = APIRouter(prefix="/vault", tags=["vault"])
 
@@ -51,6 +56,9 @@ async def list_vault(
             ),
             created_at=item.created_at,
             updated_at=item.updated_at,
+            blob_version_detected=SUPPORTED_BLOB_VERSION,
+            migration_recommended=False,
+            key_version=item.key_version,
         )
         for item in items
     ]
@@ -72,6 +80,16 @@ async def create_vault(
             "malformed or non-base64 blob", code="ERR_INVALID_BLOB"
         ) from exc
     password_hash = hash_blob(parsed_password_blob)
+    iv_bytes = parsed_password_blob[1:13]
+    iv_hex = iv_bytes.hex()
+    is_new_iv = await check_iv_duplicate(
+        user_id=str(user_id),
+        iv_hex=iv_hex,
+        ttl=settings.REPLAY_CACHE_TTL_SECONDS,
+    )
+    if not is_new_iv:
+        raise IVConflictError(detail="Duplicate IV detected for user")
+
     if not await add_replay_blob(
         user_id=str(user_id),
         blob_hash=password_hash,
@@ -97,11 +115,14 @@ async def create_vault(
         login_name=request.login_name,
         password_blob=parsed_password_blob,
         notes_blob=notes_blob,
+        key_version=request.key_version,
     )
     db.add(vault_item)
     await db.commit()
     await db.refresh(vault_item)
     response.headers["X-Vault-Blob-Version"] = "1"
+    blob_version = parsed_password_blob[0]
+    migration_needed = blob_version > SUPPORTED_BLOB_VERSION
     return VaultItemResponse(
         id=str(vault_item.id),
         service_name=vault_item.service_name,
@@ -114,6 +135,9 @@ async def create_vault(
         ),
         created_at=vault_item.created_at,
         updated_at=vault_item.updated_at,
+        blob_version_detected=blob_version,
+        migration_recommended=migration_needed,
+        key_version=vault_item.key_version,
     )
 
 
@@ -151,6 +175,16 @@ async def update_vault(
                 "malformed or non-base64 blob", code="ERR_INVALID_BLOB"
             ) from exc
         password_hash = hash_blob(parsed_password_blob)
+        iv_bytes = parsed_password_blob[1:13]
+        iv_hex = iv_bytes.hex()
+        is_new_iv = await check_iv_duplicate(
+            user_id=str(user_id),
+            iv_hex=iv_hex,
+            ttl=settings.REPLAY_CACHE_TTL_SECONDS,
+        )
+        if not is_new_iv:
+            raise IVConflictError(detail="Duplicate IV detected for user")
+
         if not await add_replay_blob(
             user_id=str(user_id),
             blob_hash=password_hash,
@@ -172,6 +206,8 @@ async def update_vault(
     await db.commit()
     await db.refresh(vault_item)
     response.headers["X-Vault-Blob-Version"] = "1"
+    blob_version = vault_item.password_blob[0]
+    migration_needed = blob_version > SUPPORTED_BLOB_VERSION
     return VaultItemResponse(
         id=str(vault_item.id),
         service_name=vault_item.service_name,
@@ -184,6 +220,9 @@ async def update_vault(
         ),
         created_at=vault_item.created_at,
         updated_at=vault_item.updated_at,
+        blob_version_detected=blob_version,
+        migration_recommended=migration_needed,
+        key_version=vault_item.key_version,
     )
 
 

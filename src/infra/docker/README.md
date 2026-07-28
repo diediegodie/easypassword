@@ -1,5 +1,10 @@
-# Como ativar / desativar docker-compose para o ambiente de desenvolvimento:
+# How to activate / deactivate docker-compose for the development environment:
 ```
-Ativar: cd src/infra/docker && docker-compose up -d
-Desativar: cd src/infra/docker && docker-compose down
+cd src/infra/docker && docker-compose up -d
+cd src/infra/docker && docker-compose down
+```
+
+## Rebuild containers
+```
+cd src/infra/docker && docker-compose build --no-cache
 ```

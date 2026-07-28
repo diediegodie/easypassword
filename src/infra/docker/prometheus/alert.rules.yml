@@ -1,0 +1,67 @@
+groups:
+  - name: easypassword_replay_cache
+    interval: 30s
+    rules:
+      - alert: ReplayCacheHitRateHigh
+        expr: |
+          (
+            sum(rate(replay_cache_hits_total[5m]))
+            /
+            clamp_min(
+              sum(rate(replay_cache_hits_total[5m])) + sum(rate(replay_cache_misses_total[5m])),
+              1e-9
+            )
+          ) > 0.80
+        for: 5m
+        labels:
+          severity: warning
+          component: replay-cache
+        annotations:
+          summary: "Replay cache hit rate exceeds 80 %"
+          description: >
+            The replay cache hit rate (duplicate-blob ratio) is
+            {{ $value | humanizePercentage }}, above the 80 % threshold
+            defined in the Phase 3.1 Encrypted Data Contract. A high hit
+            rate may indicate a client bug causing IV/blob reuse or a
+            replay attack in progress.
+
+      - alert: ReplayCacheEvictionsHigh
+        expr: rate(replay_cache_evictions_total[1m]) > 1000 / 60
+        for: 2m
+        labels:
+          severity: warning
+          component: replay-cache
+        annotations:
+          summary: "Replay cache eviction rate exceeds 1000/min"
+          description: >
+            Replay cache evictions are {{ $value | humanize }} per second,
+            which projects to more than 1000 per minute. Excessive
+            evictions may indicate the cache is undersized for peak write
+            throughput or that TTLs are too short.
+
+      - alert: ReplayCacheSizeLarge
+        expr: replay_cache_size > 100000
+        for: 10m
+        labels:
+          severity: info
+          component: replay-cache
+        annotations:
+          summary: "Replay cache size is large"
+          description: >
+            The replay cache currently holds {{ $value }} entries. Verify
+            that the Redis instance has sufficient memory headroom for the
+            configured TTL window.
+
+      - alert: ReplayCacheNoTraffic
+        expr: |
+          sum(rate(replay_cache_hits_total[5m]) + rate(replay_cache_misses_total[5m])) == 0
+        for: 15m
+        labels:
+          severity: warning
+          component: replay-cache
+        annotations:
+          summary: "Replay cache has seen no traffic for 15 minutes"
+          description: >
+            No replay-cache writes have been observed for 15 minutes.
+            The vault write path may be unavailable or the metrics
+            endpoint may not be scraped.

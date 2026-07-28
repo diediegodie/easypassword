@@ -33,13 +33,11 @@ def test_require_rate_limit_local_fallback_blocks_after_limit(
 ) -> None:
     import app.core.rate_limit as rlmod
 
-    # Force Redis failure by replacing set_rate_limit with one that raises
     def raising_set_rate_limit(*a, **k):
         raise Exception("redis down")
 
     monkeypatch.setattr(rlmod, "set_rate_limit", raising_set_rate_limit)
 
-    # Reset local counters
     rlmod._LOCAL_RATE_LIMITS.clear()
 
     user_a = str(uuid.uuid4())
@@ -55,16 +53,13 @@ def test_require_rate_limit_local_fallback_blocks_after_limit(
         "authorization": f"Bearer {token_b}",
     }
 
-    # Consume allowed requests for user A on same IP
     for _ in range(rlmod.RATE_LIMIT_REQUESTS):
         resp = app_client.post("/api/v1/session/refresh", headers=headers_a)
         assert resp.status_code != 429
 
-    # Next request for user A should be blocked
     resp = app_client.post("/api/v1/session/refresh", headers=headers_a)
     assert resp.status_code == 429
 
-    # User B on same IP should still have its own quota
     resp = app_client.post("/api/v1/session/refresh", headers=headers_b)
     assert resp.status_code != 429
 

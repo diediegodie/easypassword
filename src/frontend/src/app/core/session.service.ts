@@ -13,6 +13,8 @@ export interface ReauthMetadata {
 export class SessionService {
   public sessionValid = signal(false);
   public accessToken = signal<string | null>(null);
+  public userId = signal<string | null>(null);
+  public deviceId = signal<string | null>(null);
   public reauthRequired = signal(false);
   public reauthReason = signal<ReauthMetadata>({ reason: 'unknown' });
   public vaultAccessBlocked = computed(() => !this.sessionValid() || this.reauthRequired());
@@ -30,9 +32,11 @@ export class SessionService {
     return this.http.post<{ status: string }>('/api/v1/session/revoke', {});
   }
 
-  setSessionValid(token: string | null): void {
+  setSessionValid(token: string | null, userId: string | null = null, deviceId: string | null = null): void {
     this.sessionValid.set(true);
     this.accessToken.set(token);
+    this.userId.set(userId);
+    this.deviceId.set(deviceId);
     this.reauthRequired.set(false);
     this.reauthReason.set({ reason: 'unknown' });
   }
@@ -47,6 +51,8 @@ export class SessionService {
   clear(): void {
     this.sessionValid.set(false);
     this.accessToken.set(null);
+    this.userId.set(null);
+    this.deviceId.set(null);
     this.reauthRequired.set(false);
     this.reauthReason.set({ reason: 'unknown' });
   }

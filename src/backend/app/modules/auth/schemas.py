@@ -1,5 +1,3 @@
-"""Request and response schemas for WebAuthn registration."""
-
 from __future__ import annotations
 
 from typing import Any

@@ -44,19 +44,13 @@ def configure_test_settings(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> Generator[tuple[str, str], None, None]:
-    """Generate ephemeral RSA keys, write to temp files, patch settings.
-
-    Yields (private_key_pem, public_key_pem) so tests can sign tokens.
-    Keys are generated fresh each run — no secrets in any tracked file.
-    """
+    """Generate ephemeral RSA keys, write to temp files, patch settings."""
     priv_pem, pub_pem = _generate_rsa_keypair()
     priv_key_file = tmp_path / "test_private_key.pem"
     pub_key_file = tmp_path / "test_public_key.pem"
     priv_key_file.write_text(priv_pem)
     pub_key_file.write_text(pub_pem)
 
-    # Patch the settings singleton directly (it was instantiated at import time,
-    # so monkeypatch.setenv alone won't affect it).
     monkeypatch.setattr(settings, "JWT_PUBLIC_KEY", str(pub_key_file))
     monkeypatch.setattr(settings, "REVOCATION_LIST_BACKEND", "redis")
     monkeypatch.setattr(settings, "SECRET_KEY", "test-secret-key")

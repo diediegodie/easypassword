@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import base64
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 SUSPICIOUS_KEY_NAMES = {
     "password",
@@ -25,6 +26,7 @@ class VaultItemResponse(BaseModel):
     updated_at: datetime
     blob_version_detected: int = 1
     migration_recommended: bool = False
+    key_version: int = 1
 
 
 class VaultCreateRequest(BaseModel):
@@ -33,7 +35,21 @@ class VaultCreateRequest(BaseModel):
     service_name: str = Field(..., min_length=1, max_length=255)
     login_name: str = Field(..., min_length=1, max_length=255)
     password_blob: str = Field(..., min_length=1)
-    notes_blob: str | None = None
+    notes_blob: str | None = Field(default=None)
+    key_version: int = Field(default=1, ge=1)
+
+    @field_validator("password_blob", "notes_blob")
+    @classmethod
+    def validate_blob_base64(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError("malformed or non-base64 blob")
+        try:
+            base64.b64decode(value, validate=True)
+        except Exception as exc:
+            raise ValueError("malformed or non-base64 blob") from exc
+        return value
 
     @model_validator(mode="before")
     @classmethod
@@ -49,10 +65,23 @@ class VaultCreateRequest(BaseModel):
 class VaultUpdateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    service_name: str | None = Field(None, min_length=1, max_length=255)
-    login_name: str | None = Field(None, min_length=1, max_length=255)
-    password_blob: str | None = Field(None, min_length=1)
-    notes_blob: str | None = None
+    service_name: str | None = Field(default=None, min_length=1, max_length=255)
+    login_name: str | None = Field(default=None, min_length=1, max_length=255)
+    password_blob: str | None = Field(default=None, min_length=1)
+    notes_blob: str | None = Field(default=None)
+
+    @field_validator("password_blob", "notes_blob")
+    @classmethod
+    def validate_blob_base64(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError("malformed or non-base64 blob")
+        try:
+            base64.b64decode(value, validate=True)
+        except Exception as exc:
+            raise ValueError("malformed or non-base64 blob") from exc
+        return value
 
     @model_validator(mode="before")
     @classmethod
