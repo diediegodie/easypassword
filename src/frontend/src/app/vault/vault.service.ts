@@ -96,7 +96,6 @@ export class VaultService {
     return this.decryptItem(created);
   }
 
-
   async update(id: string, payload: UpdateVaultItemRequest): Promise<VaultItemPlaintext> {
     const { userId, deviceId } = this.requireSession();
     const key = this.keyLifecycle.getKey();
@@ -160,13 +159,7 @@ export class VaultService {
 
     let notes: string | undefined;
     if (item.notes_blob) {
-      notes = await this.decryptField(
-        item.notes_blob,
-        key,
-        userId,
-        item.id,
-        item.service_name,
-      );
+      notes = await this.decryptField(item.notes_blob, key, userId, item.id, item.service_name);
     }
 
     return {

@@ -8,7 +8,6 @@ export const PBKDF2_ITERATIONS = 310_000;
 export const DERIVED_KEY_LENGTH = 32;
 export const AAD_SEPARATOR = 0x1f;
 
-
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
   for (let i = 0; i < bytes.length; i++) {
@@ -71,11 +70,10 @@ export class CryptoService {
       },
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
-      false, 
+      false,
       ['encrypt', 'decrypt'],
     );
   }
-
 
   generateIV(deviceId: string, counter: number): Uint8Array {
     if (counter < 0 || counter > 0xffffffff) {
@@ -103,11 +101,7 @@ export class CryptoService {
     return this.counter++;
   }
 
-  buildAAD(
-    userId: string,
-    itemId: string,
-    serviceName: string,
-  ): Uint8Array {
+  buildAAD(userId: string, itemId: string, serviceName: string): Uint8Array {
     const sep = new Uint8Array([AAD_SEPARATOR]);
     const user = normalizeToNFCBytes(userId);
     const item = normalizeToNFCBytes(itemId);

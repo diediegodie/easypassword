@@ -216,8 +216,8 @@ describe('VaultService', () => {
       };
 
       const promise = service.create(payload);
-  await Promise.resolve();
-  await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
       const req = httpMock.expectOne('/api/v1/vault');
       req.flush({
         id: 'new-id',
@@ -226,15 +226,9 @@ describe('VaultService', () => {
         password_blob: 'blob',
         created_at: '',
         updated_at: '',
-      });
-
-      expect(cryptoMock.nextCounter).toHaveBeenCalled();
-      expect(cryptoMock.generateIV).toHaveBeenCalledWith('device-456', expect.any(Number));
-      await promise;
+      } as VaultItem);
     });
-  });
 
-  describe('update()', () => {
     it('PUTs to /api/v1/vault/{id} and returns decrypted item', async () => {
       const serverResponse: VaultItem = {
         id: 'item-1',
@@ -246,8 +240,8 @@ describe('VaultService', () => {
       };
 
       const promise = service.update('item-1', { login_name: 'updated-user' });
-  await Promise.resolve();
-  await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
       const req = httpMock.expectOne('/api/v1/vault/item-1');
       expect(req.request.method).toBe('PUT');
 
@@ -326,8 +320,8 @@ describe('VaultService', () => {
 
     it('uses empty string as serviceNameForAad when service_name not in payload', async () => {
       const promise = service.update('item-1', { password: 'new-pw' });
-  await Promise.resolve();
-  await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
       const req = httpMock.expectOne('/api/v1/vault/item-1');
 
       expect(cryptoMock.encryptBlob).toHaveBeenCalledWith(

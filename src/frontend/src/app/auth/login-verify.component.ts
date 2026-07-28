@@ -189,7 +189,11 @@ export class LoginVerifyComponent {
         })
         .subscribe({
           next: (response) => {
-            this.authService.handleSuccess(response.access_token, response.user_id, response.device_id);
+            this.authService.handleSuccess(
+              response.access_token,
+              response.user_id,
+              response.device_id,
+            );
             this.resultMessage.set('Reauthentication succeeded. You may continue.');
             this.ngZone.run(() => {
               this.router.navigate(['/vault']);

@@ -21,7 +21,12 @@ export class SessionState {
     this.vaultAccessBlocked = computed(() => !this.sessionValid() || this.reauthRequired());
   }
 
-  setSessionValid(value: boolean, token: string | null = null, userId: string | null = null, deviceId: string | null = null): void {
+  setSessionValid(
+    value: boolean,
+    token: string | null = null,
+    userId: string | null = null,
+    deviceId: string | null = null,
+  ): void {
     this.sessionService.setSessionValid(token, userId, deviceId);
   }
 

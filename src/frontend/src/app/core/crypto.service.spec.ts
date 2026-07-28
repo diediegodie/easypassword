@@ -154,17 +154,16 @@ describe('CryptoService.generateIV', () => {
   it('embeds counter XOR device-hash in bytes 8–11', () => {
     const counter = 0x12345678;
     const fakeRandom = new Uint8Array(8);
-    const spy = jest
-      .spyOn(crypto, 'getRandomValues')
-      .mockImplementation(((array: ArrayBufferView | null): ArrayBufferView | null => {
-        if (!array) return array;
-        const view = array as unknown as Uint8Array;
-        for (let i = 0; i < view.length; i++) {
-          view[i] = fakeRandom[i % fakeRandom.length];
-        }
-        return array;
-      }) as typeof crypto.getRandomValues);
-
+    const spy = jest.spyOn(crypto, 'getRandomValues').mockImplementation(((
+      array: ArrayBufferView | null,
+    ): ArrayBufferView | null => {
+      if (!array) return array;
+      const view = array as unknown as Uint8Array;
+      for (let i = 0; i < view.length; i++) {
+        view[i] = fakeRandom[i % fakeRandom.length];
+      }
+      return array;
+    }) as typeof crypto.getRandomValues);
     const iv = service.generateIV(TEST_DEVICE_ID, counter);
     spy.mockRestore();
 

@@ -32,7 +32,11 @@ export class SessionService {
     return this.http.post<{ status: string }>('/api/v1/session/revoke', {});
   }
 
-  setSessionValid(token: string | null, userId: string | null = null, deviceId: string | null = null): void {
+  setSessionValid(
+    token: string | null,
+    userId: string | null = null,
+    deviceId: string | null = null,
+  ): void {
     this.sessionValid.set(true);
     this.accessToken.set(token);
     this.userId.set(userId);
